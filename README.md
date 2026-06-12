@@ -21,29 +21,37 @@ Não é material de estudo nem coletânea de boas práticas genéricas: é **nor
 
 Valem para qualquer stack web:
 
-| Módulo | Cobre |
-|---|---|
-| [authentication](core/authentication.md) | JWT validado no servidor, sessões, erros sem enumeração |
-| [authorization](core/authorization.md) | Deny by default, anti-IDOR, checagem centralizada, SSRF |
-| [input-validation](core/input-validation.md) | Schema na fronteira, queries parametrizadas, uploads |
-| [secrets-config](core/secrets-config.md) | Onde mora cada chave, security headers, CORS |
-| [crypto-data-protection](core/crypto-data-protection.md) | AES-256-GCM, HMAC timing-safe, CSPRNG |
-| [dependencies-supply-chain](core/dependencies-supply-chain.md) | Lockfile, audit no CI, avaliação de dependência nova |
-| [api-security](core/api-security.md) | Prólogo canônico de endpoint, rate limiting, erros padrão |
-| [frontend-security](core/frontend-security.md) | XSS, CSP, sanitização centralizada, clickjacking |
-| [error-handling-resilience](core/error-handling-resilience.md) | Fail closed, timeouts, retry disciplinado |
-| [logging-monitoring](core/logging-monitoring.md) | Eventos de segurança, redação automática, audit log |
+- **[authentication](core/authentication.md)** — Provar quem é o usuário, a cada request. Validação de JWT no servidor (assinatura, expiração, audiência), por que `getUser()` e não `getSession()` para decisões de segurança, revogação de sessão em eventos sensíveis, rate limit nos fluxos de credencial e mensagens de erro que não revelam quais contas existem.
+
+- **[authorization](core/authorization.md)** — O que o usuário pode fazer depois de autenticado. Deny by default, checagem em nível de objeto (anti-IDOR: "esse recurso é mesmo seu?"), helper de acesso centralizado para nenhuma função "esquecer" a checagem, e validação SSRF de URLs de saída — cobrindo bypasses por encoding de IP (decimal, hex, octal, IPv6-mapped).
+
+- **[input-validation](core/input-validation.md)** — A fronteira entre o mundo hostil e o seu código. Validação por schema (zod) de todo input externo, queries sempre parametrizadas contra injection, upload validado em 4 dimensões (extensão, content-type, tamanho, nome) e por que blocklist de "caracteres perigosos" nunca é a defesa.
+
+- **[secrets-config](core/secrets-config.md)** — Onde cada tipo de chave deve morar (frontend público × secrets do servidor × CI), o que jamais pode ir para o bundle, separação por ambiente, o que fazer quando um secret vaza, security headers de referência e CORS por allowlist.
+
+- **[crypto-data-protection](core/crypto-data-protection.md)** — Criptografia sem inventar moda. AES-256-GCM com IV único para dado que precisa voltar, hash para senha (nunca o contrário), CSPRNG para tokens, comparação timing-safe para HMAC/assinaturas e payloads assinados com expiração anti-replay.
+
+- **[dependencies-supply-chain](core/dependencies-supply-chain.md)** — Defesa contra o ataque que chega via `npm install`. Lockfile + audit no CI, as 5 perguntas antes de adicionar qualquer pacote, typosquatting e slopsquatting (pacotes que IAs alucinam), SRI para CDN e permissões mínimas no pipeline.
+
+- **[api-security](core/api-security.md)** — O esqueleto de um endpoint seguro. A ordem canônica do handler (CORS → método → auth → acesso → rate limit → validação), rate limiting por usuário com cap de custo nas operações caras, paginação com teto do servidor e erros padronizados com requestId.
+
+- **[frontend-security](core/frontend-security.md)** — O que fazer quando seu código roda na máquina do atacante. XSS bloqueado por um único wrapper sanitizado (DOMPurify) em todo o projeto, URLs dinâmicas sem `javascript:`, CSP + frame-ancestors, e por que esconder botão é UX, não segurança.
+
+- **[error-handling-resilience](core/error-handling-resilience.md)** — Como o sistema se comporta quando algo dá errado. Fail closed (erro na checagem de segurança = negar), nada de stack trace para o cliente, timeout em toda chamada externa, retry só com backoff e idempotência, e nenhum catch silencioso.
+
+- **[logging-monitoring](core/logging-monitoring.md)** — Saber que o ataque aconteceu. Quais eventos de segurança logar e com qual estrutura, o que jamais pode ir para log (tokens, PII, chaves), anti log-injection, trilha de auditoria persistente e o alerta mínimo viável.
 
 ### 4 módulos de stack — [stack/](stack/)
 
 Aplicação concreta em TypeScript/React/Supabase/Deno (princípios transferíveis para stacks equivalentes):
 
-| Módulo | Cobre |
-|---|---|
-| [supabase-rls](stack/supabase-rls.md) | RLS como fronteira de dados, template de migration, Storage |
-| [edge-functions-deno](stack/edge-functions-deno.md) | Template de função segura, helpers compartilhados, webhooks HMAC |
-| [react-typescript](stack/react-typescript.md) | TS estrito como segurança, env validada, open redirect |
-| [ai-llm-security](stack/ai-llm-security.md) ★ | Prompt injection em camadas, BYOK, RAG, caps de custo, tool-use |
+- **[supabase-rls](stack/supabase-rls.md)** — A fronteira de dados quando a anon key é pública por design. RLS em toda tabela com policy por operação (incluindo o `WITH CHECK` que quase todo mundo esquece no UPDATE), índice nas colunas de policy, Storage com pasta por usuário, os perigos do `service_role` e do `SECURITY DEFINER`, e o teste de isolamento usuário A × usuário B.
+
+- **[edge-functions-deno](stack/edge-functions-deno.md)** — Cada função é um endpoint público na internet. Template completo de função segura com o prólogo na ordem certa, helpers compartilhados em `_shared/` como única implementação, CORS por allowlist via env, webhooks verificados com HMAC timing-safe e secrets sem fallback.
+
+- **[react-typescript](stack/react-typescript.md)** — TypeScript estrito como ferramenta de segurança. `unknown` + schema nas fronteiras em vez de `as`, env do Vite validada no boot, guard de rota único, redirect pós-login com allowlist (anti open redirect) e onde chaves digitadas pelo usuário não podem parar.
+
+- **[ai-llm-security](stack/ai-llm-security.md)** ★ — O módulo diferencial. Prompt injection tratada com defesa em camadas (delimitação do conteúdo externo + instrução defensiva + score de risco no RAG + validação de output), chaves BYOK cifradas e write-only, rate limit e cap de custo antes de toda chamada de modelo, e tool-use com confirmação humana para ações destrutivas.
 
 ★ Segurança de IA/LLM tratada como cidadã de primeira classe — o módulo mais difícil de encontrar pronto em outros guias.
 
