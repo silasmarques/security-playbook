@@ -1,6 +1,6 @@
 ---
 owasp: [A01, A02, A05, A10]
-last-review: 2026-06-11
+last-review: 2026-07-02
 sources:
   - https://supabase.com/docs/guides/functions
   - https://supabase.com/docs/guides/functions/secrets
@@ -72,6 +72,12 @@ Deno.serve(withErrorBoundary(async (req) => {
   });
 }));
 ```
+
+> **Chaves novas (validado 2026-07-02):** além das env legadas (`SUPABASE_ANON_KEY`,
+> `SUPABASE_SERVICE_ROLE_KEY`), as funções recebem `SUPABASE_PUBLISHABLE_KEYS` e
+> `SUPABASE_SECRET_KEYS` — dicionários JSON com chaves nomeadas. O template acima usa a
+> legada por compatibilidade; ao migrar para `sb_publishable_...`/`sb_secret_...`, ler a
+> doc de secrets e trocar a origem da chave (`core/secrets-config.md` P1).
 
 ### P2 — `_shared/cors.ts` com allowlist por env
 

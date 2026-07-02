@@ -1,11 +1,12 @@
 ---
 owasp: [A02]
-last-review: 2026-06-11
+last-review: 2026-07-02
 sources:
   - https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html
   - https://supabase.com/docs/guides/functions/secrets
   - https://vite.dev/guide/env-and-mode
   - https://github.com/gitleaks/gitleaks-action
+  - https://supabase.com/docs/guides/api/api-keys
 ---
 
 # Secrets e Configuração Segura
@@ -28,11 +29,15 @@ sources:
 
 | Tipo | Onde | Como definir | Quem lê |
 |---|---|---|---|
-| Config pública do frontend (URL do Supabase, anon key) | Env do Vercel com prefixo `VITE_` | Dashboard Vercel → Environment Variables | Bundle público — **anon key é pública por design; a proteção é RLS** |
+| Config pública do frontend (URL do Supabase, publishable key `sb_publishable_...`) | Env do Vercel com prefixo `VITE_` | Dashboard Vercel → Environment Variables | Bundle público — **a publishable key é pública por design; a proteção é RLS** |
 | Secrets de Edge Functions (chaves de IA, `ENCRYPTION_KEY`, HMAC) | Supabase secrets | `supabase secrets set NOME=valor` | `Deno.env.get("NOME")` só no servidor |
 | Secrets de CI (deploy tokens) | GitHub Actions secrets | Repo → Settings → Secrets | `${{ secrets.NOME }}` só nos jobs que precisam |
-| `service_role` key | **Nunca no frontend, nunca no repo** | Já existe no painel Supabase | Apenas Edge Functions/backend, via env |
+| Secret key (`sb_secret_...`; `service_role` no modelo legado) | **Nunca no frontend, nunca no repo** | Painel Supabase → API Keys | Apenas Edge Functions/backend, via env — a secret key nova **rejeita requisições de navegador automaticamente** |
 | Dev local | `.env.local` (gitignored) | manual | só a máquina do dev |
+
+> **Migração de chaves (validado 2026-07-02):** as chaves JWT legadas (`anon`/`service_role`)
+> seguem funcionando, mas a doc oficial recomenda as novas (`sb_publishable_...`/`sb_secret_...`)
+> para todo projeto — em especial a secret key, pela rejeição nativa de uso em navegador.
 
 ### P2 — Security headers de referência (toda resposta HTML; APIs: os 3 primeiros)
 
