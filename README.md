@@ -165,6 +165,7 @@ Para auditar um sistema que já está no ar, use o roteiro completo de **[checkl
 
 - Cada módulo tem `last-review` e `sources` no frontmatter — afirmações não triviais citam fonte oficial (OWASP, docs Supabase/Deno/React).
 - **Cadência de revisão:** módulos `stack/` a cada trimestre (plataformas mudam rápido — a Supabase trocou o modelo de API keys em ~1 ano); `core/` ao menos 1×/ano e a cada nova edição OWASP/CWE.
+- **A norma é verificada como código:** todo push roda [o CI](.github/workflows/ci.yml) — links íntegros, matriz OWASP consistente com o frontmatter, limites de tamanho e **compilação de todos os Padrões prontos** (`deno check` com os tipos reais de zod/supabase/dompurify). Padrão que não compila não entra na norma. O repo também roda o próprio secret scan do [P4](core/secrets-config.md).
 - Este é um playbook **opinativo e curado**: contribuições externas não são aceitas para preservar a integridade das normas. Encontrou um erro? Abra uma issue.
 - Quando sair nova edição da OWASP Top 10, tags e matriz são atualizadas.
 
