@@ -47,6 +47,9 @@ Deno.serve(async (req) => {
   }
   // user.id é confiável daqui pra frente — veio do token verificado,
   // nunca do body/query. Próximo passo: autorização (core/authorization.md).
+  return new Response(JSON.stringify({ ok: true }), {
+    headers: { "Content-Type": "application/json" },
+  });
 });
 ```
 

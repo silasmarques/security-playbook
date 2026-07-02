@@ -92,7 +92,8 @@ function safeNext(next: unknown): string {
     ? next
     : "/";
 }
-navigate(safeNext(location.state?.next));
+const { state } = useLocation();
+navigate(safeNext(state?.next));
 ```
 
 ## Anti-padrões

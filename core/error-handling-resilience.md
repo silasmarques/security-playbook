@@ -45,7 +45,10 @@ export function withErrorBoundary(
   };
 }
 
-Deno.serve(withErrorBoundary(async (req) => { /* handler normal */ }));
+Deno.serve(withErrorBoundary(async (req) => {
+  /* handler normal — todo caminho retorna Response */
+  return new Response("ok");
+}));
 ```
 
 ### P2 — Fetch com timeout e distinção de falhas
