@@ -5,6 +5,7 @@ sources:
   - https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html
   - https://supabase.com/docs/guides/functions/secrets
   - https://vite.dev/guide/env-and-mode
+  - https://github.com/gitleaks/gitleaks-action
 ---
 
 # Secrets e Configuração Segura
@@ -67,6 +68,30 @@ git diff --cached | Select-String -Pattern 'api[_-]?key|secret|password|token|BE
 > `.env.example` versionado com os NOMES das variáveis (sem valores) documenta a
 > configuração sem expor nada.
 
+### P4 — Secret scan automatizado no CI (gitleaks)
+
+O scan manual do P3 pega o commit atual; o CI pega o histórico e o que passou batido. Complementares — os dois, não um ou outro.
+
+```yaml
+# .github/workflows/gitleaks.yml
+name: gitleaks
+on: [pull_request, push, workflow_dispatch]
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # histórico completo — sem isso, só varre o HEAD
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # GITLEAKS_LICENSE: só exigido para organizações; conta pessoal não precisa.
+```
+
+> Achou um secret no histórico? O CI falha — mas **rotacionar** vem primeiro
+> (R1): considere a chave comprometida, remover do histórico não basta.
+
 ## Anti-padrões
 
 ```typescript
@@ -95,3 +120,4 @@ headers.set("Access-Control-Allow-Credentials", "true");
 - [ ] Sem fallback hardcoded para env ausente — falhar rápido em vez de degradar?
 - [ ] CORS do endpoint novo usa allowlist de origens?
 - [ ] Security headers presentes nas respostas?
+- [ ] CI do repo roda secret scan automatizado (gitleaks) além do scan manual do diff (P4)?
