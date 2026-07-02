@@ -18,6 +18,7 @@ last-review: 2026-06-11
 - [ ] Validação de env no boot ([stack/react-typescript.md](../stack/react-typescript.md) P3)
 - [ ] Lockfile commitado; Dependabot configurado ([core/dependencies-supply-chain.md](../core/dependencies-supply-chain.md) P2)
 - [ ] CI mínimo: `npm ci` + `npm audit` + `tsc --noEmit` + testes ([core/dependencies-supply-chain.md](../core/dependencies-supply-chain.md) P1)
+- [ ] Secret scan automatizado no CI (gitleaks) ([core/secrets-config.md](../core/secrets-config.md) P4)
 - [ ] Security headers no host ([core/frontend-security.md](../core/frontend-security.md) P3)
 
 ## Supabase (se aplicável)
