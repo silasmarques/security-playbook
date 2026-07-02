@@ -43,7 +43,9 @@ Violação de qualquer item abaixo é bug de segurança, independente de context
 | Tratamento de erro / retry / timeout | [core/error-handling-resilience.md](core/error-handling-resilience.md) | [pre-commit](checklists/pre-commit.md) |
 | Logging / auditoria / alertas | [core/logging-monitoring.md](core/logging-monitoring.md) | [pre-commit](checklists/pre-commit.md) |
 | Componente React / renderizar conteúdo externo | [core/frontend-security.md](core/frontend-security.md) + [stack/react-typescript.md](stack/react-typescript.md) | [pre-commit](checklists/pre-commit.md) |
-| Planejar feature nova | — | [new-feature](checklists/new-feature.md) (antes de codar) |
+| Escrever testes de segurança / critérios de aceite | [core/security-testing.md](core/security-testing.md) | [new-feature](checklists/new-feature.md) |
+| Revisar diff / PR (relatório completo) | [prompts/security-review.md](prompts/security-review.md) | [pre-commit](checklists/pre-commit.md) |
+| Planejar feature nova | [prompts/pre-implementation.md](prompts/pre-implementation.md) | [new-feature](checklists/new-feature.md) (antes de codar) |
 | Criar projeto novo | — | [new-project](checklists/new-project.md) |
 | Antes de commitar | — | [pre-commit](checklists/pre-commit.md) |
 | Auditar sistema existente (pente fino) | todos, na ordem do roteiro | [audit](checklists/audit.md) |
@@ -51,11 +53,11 @@ Violação de qualquer item abaixo é bug de segurança, independente de context
 ## Bloco 3 — Instruções de uso para a IA
 
 1. **Quando consultar:** ao implementar ou revisar código que toque superfície de segurança (auth, autorização, input externo, queries, secrets, criptografia, chamadas externas, erro, logging, dependências, IA/LLM), ler este arquivo e o(s) módulo(s) do roteamento ANTES de escrever o código. Quando o usuário pedir explicitamente, a consulta é integral.
-2. **Como reportar:** ao concluir a tarefa, informar em 1–3 linhas quais regras se aplicaram e como foram atendidas (ex.: "api-security R1/R2 ok: prólogo completo + rate limit; supabase-rls P1: migration com RLS e índice").
+2. **Como reportar — dois modos.** (a) **Implementando:** reporte enxuto de 1–3 linhas ao concluir a tarefa, dizendo quais regras se aplicaram e como (ex.: "api-security R1/R2 ok: prólogo completo + rate limit; supabase-rls P1: migration com RLS e índice"). (b) **Revisando/auditando** (usuário pediu revisão de diff, PR ou sistema): relatório completo por achado no formato de [prompts/security-review.md](prompts/security-review.md) — Risco / Por que importa / Onde / Como corrigir / Teste recomendado / BDD quando fizer sentido, com severidade e OWASP/CWE.
 3. **Conflito com código existente:** se o código atual viola o playbook, SINALIZAR a divergência ao usuário — não copiar o padrão inseguro, nem "consertar" silenciosamente fora do escopo da tarefa.
 4. **Norma, não sugestão:** o playbook prevalece sobre conveniência. Exceção só com decisão explícita do usuário, registrada em comentário no ponto do código.
 5. **Não inventar:** se uma situação não está coberta, dizer isso e propor com base nos princípios do Bloco 1 — marcando o que é hipótese a validar.
 
 ---
 
-*Estrutura: 10 módulos em [core/](core/) (princípios universais) + 4 em [stack/](stack/) (TS/React/Supabase/Deno/IA) + 4 [checklists/](checklists/). Manutenção: ver [README.md](README.md).*
+*Estrutura: 11 módulos em [core/](core/) (princípios universais) + 4 em [stack/](stack/) (TS/React/Supabase/Deno/IA) + 4 [checklists/](checklists/) + 2 [prompts/](prompts/). Manutenção: ver [README.md](README.md).*
