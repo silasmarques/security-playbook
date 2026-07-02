@@ -2,6 +2,9 @@
 
 **Um norte de segurança normativo para desenvolvimento de software — feito para ser consumido por humanos e por IAs de codificação (Claude Code, Cursor, Copilot e afins).**
 
+> **Missão:** transformar conhecimento de segurança em prática de desenvolver, revisar e testar software com menos risco.
+> **Princípio:** pensar como atacante, documentar como defensor, programar como engenheiro responsável.
+
 Serve aos dois momentos da vida de um sistema:
 
 - **Construindo:** a IA (ou você) consulta o playbook enquanto o código nasce — e ele já nasce seguro.
@@ -17,7 +20,7 @@ Não é material de estudo nem coletânea de boas práticas genéricas: é **nor
 
 **[SECURITY.md](SECURITY.md)** — 15 regras inegociáveis + tabela de roteamento ("vou fazer X → leio Y") + instruções de como uma IA deve consultar e reportar conformidade. É o único arquivo que precisa estar sempre à mão; o resto é consultado sob demanda.
 
-### 10 módulos universais — [core/](core/)
+### 11 módulos universais — [core/](core/)
 
 Valem para qualquer stack web:
 
@@ -40,6 +43,8 @@ Valem para qualquer stack web:
 - **[error-handling-resilience](core/error-handling-resilience.md)** — Como o sistema se comporta quando algo dá errado. Fail closed (erro na checagem de segurança = negar), nada de stack trace para o cliente, timeout em toda chamada externa, retry só com backoff e idempotência, e nenhum catch silencioso.
 
 - **[logging-monitoring](core/logging-monitoring.md)** — Saber que o ataque aconteceu. Quais eventos de segurança logar e com qual estrutura, o que jamais pode ir para log (tokens, PII, chaves), anti log-injection, trilha de auditoria persistente e o alerta mínimo viável.
+
+- **[security-testing](core/security-testing.md)** — Provar que os controles negam o acesso indevido, não só que o caminho feliz funciona. Teste negativo para todo controle, teste de acesso cruzado A×B (anti-IDOR), estouro de rate limit, vetores de input inválido na própria suíte e critérios de aceite em BDD defensivo (Gherkin). Pensar como atacante, verificado como teste.
 
 ### 4 módulos de stack — [stack/](stack/)
 
@@ -64,9 +69,18 @@ Aplicação concreta em TypeScript/React/Supabase/Deno (princípios transferíve
 | [pre-commit](checklists/pre-commit.md) | Antes de todo commit |
 | [audit](checklists/audit.md) | Pente fino em sistema que já existe |
 
+### 2 prompts prontos — [prompts/](prompts/)
+
+Para colar numa sessão de IA já configurada com o playbook:
+
+| Prompt | Quando usar |
+|---|---|
+| [pre-implementation](prompts/pre-implementation.md) | Antes de codar — riscos, critérios de aceite, BDD defensivo e cuidados por camada |
+| [security-review](prompts/security-review.md) | Revisar um diff/PR/código — relatório completo por achado (Risco → Correção → Teste → BDD) |
+
 ### A prova de cobertura
 
-**[owasp-mapping.md](owasp-mapping.md)** — matriz que mapeia cada categoria da OWASP Top 10:2025 aos módulos e regras que a cobrem. Nada do Top 10 fica descoberto.
+**[owasp-mapping.md](owasp-mapping.md)** — matriz que mapeia cada categoria da OWASP Top 10:2025 aos módulos e regras que a cobrem, com rastreio às fraquezas do CWE Top 25:2025. Nada do Top 10 fica descoberto.
 
 Cada módulo segue o mesmo formato: **Regras → Padrões prontos → Anti-padrões → Checklist**. Os padrões de código foram extraídos e generalizados de **sistemas reais em produção, auditados**.
 
@@ -121,7 +135,8 @@ A IA deve consultar o roteamento, aplicar os módulos e reportar algo como *"api
 | "Cria a tabela de comentários" | Migration com RLS + 4 policies + índice ([supabase-rls](stack/supabase-rls.md) P1) |
 | "Adiciona busca por URL externa" | Validação SSRF + timeout + redirect revalidado ([authorization](core/authorization.md) P2) |
 | "Integra com a API do Gemini" | Rate limit + cap de custo ANTES da chamada ([ai-llm-security](stack/ai-llm-security.md)) |
-| "Consulta o playbook e revisa esse diff" | Consulta integral + checklist [pre-commit](checklists/pre-commit.md) |
+| "Consulta o playbook e revisa esse diff" | Relatório completo por achado ([prompts/security-review.md](prompts/security-review.md)) + checklist [pre-commit](checklists/pre-commit.md) |
+| "Analisa essa feature antes de eu codar" | Threat model + critérios de aceite + BDD ([prompts/pre-implementation.md](prompts/pre-implementation.md)) |
 
 ### Pente fino em sistema existente
 
