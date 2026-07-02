@@ -37,6 +37,7 @@ Violação de qualquer item abaixo é bug de segurança, independente de context
 | Permissões / acesso a recurso | [core/authorization.md](core/authorization.md) | [pre-commit](checklists/pre-commit.md) |
 | Integração com API externa / fetch dinâmico | [core/authorization.md](core/authorization.md) P2 + [core/error-handling-resilience.md](core/error-handling-resilience.md) | [pre-commit](checklists/pre-commit.md) |
 | Feature com IA / LLM / RAG / BYOK | [stack/ai-llm-security.md](stack/ai-llm-security.md) + [core/api-security.md](core/api-security.md) P2 | [new-feature](checklists/new-feature.md) |
+| Configurar agente de codificação / instalar MCP server | [stack/agentic-security.md](stack/agentic-security.md) | [pre-commit](checklists/pre-commit.md) |
 | Armazenar dado sensível / criptografar | [core/crypto-data-protection.md](core/crypto-data-protection.md) | [pre-commit](checklists/pre-commit.md) |
 | Secret / variável de ambiente nova | [core/secrets-config.md](core/secrets-config.md) | [pre-commit](checklists/pre-commit.md) |
 | Dependência nova / upgrade | [core/dependencies-supply-chain.md](core/dependencies-supply-chain.md) | [pre-commit](checklists/pre-commit.md) |
@@ -60,4 +61,4 @@ Violação de qualquer item abaixo é bug de segurança, independente de context
 
 ---
 
-*Estrutura: 11 módulos em [core/](core/) (princípios universais) + 4 em [stack/](stack/) (TS/React/Supabase/Deno/IA) + 4 [checklists/](checklists/) + 2 [prompts/](prompts/). Manutenção: ver [README.md](README.md).*
+*Estrutura: 11 módulos em [core/](core/) (princípios universais) + 5 em [stack/](stack/) (TS/React/Supabase/Deno/IA/agentes) + 4 [checklists/](checklists/) + 2 [prompts/](prompts/). Manutenção: ver [README.md](README.md).*

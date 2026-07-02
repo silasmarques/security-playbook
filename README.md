@@ -46,7 +46,7 @@ Valem para qualquer stack web:
 
 - **[security-testing](core/security-testing.md)** — Provar que os controles negam o acesso indevido, não só que o caminho feliz funciona. Teste negativo para todo controle, teste de acesso cruzado A×B (anti-IDOR), estouro de rate limit, vetores de input inválido na própria suíte e critérios de aceite em BDD defensivo (Gherkin). Pensar como atacante, verificado como teste.
 
-### 4 módulos de stack — [stack/](stack/)
+### 5 módulos de stack — [stack/](stack/)
 
 Aplicação concreta em TypeScript/React/Supabase/Deno (princípios transferíveis para stacks equivalentes):
 
@@ -58,7 +58,9 @@ Aplicação concreta em TypeScript/React/Supabase/Deno (princípios transferíve
 
 - **[ai-llm-security](stack/ai-llm-security.md)** ★ — O módulo diferencial. Prompt injection tratada com defesa em camadas (delimitação do conteúdo externo + instrução defensiva + score de risco no RAG + validação de output), chaves BYOK cifradas e write-only, rate limit e cap de custo antes de toda chamada de modelo, e tool-use com confirmação humana para ações destrutivas.
 
-★ Segurança de IA/LLM tratada como cidadã de primeira classe — o módulo mais difícil de encontrar pronto em outros guias.
+- **[agentic-security](stack/agentic-security.md)** ★ — O outro lado da moeda: segurança de quem **usa** agentes de codificação (Claude Code, Cursor) e MCP servers. Prompt injection via conteúdo do repositório, tool poisoning, a tríade letal (dados privados + conteúdo não confiável + canal de exfiltração), permissões mínimas no harness e review de diff de agente como código de terceiro.
+
+★ Segurança de IA/LLM e de agentes tratada como cidadã de primeira classe — os módulos mais difíceis de encontrar prontos em outros guias.
 
 ### 4 checklists — [checklists/](checklists/)
 
@@ -162,6 +164,7 @@ Para auditar um sistema que já está no ar, use o roteiro completo de **[checkl
 ## 🔧 Manutenção e versões
 
 - Cada módulo tem `last-review` e `sources` no frontmatter — afirmações não triviais citam fonte oficial (OWASP, docs Supabase/Deno/React).
+- **Cadência de revisão:** módulos `stack/` a cada trimestre (plataformas mudam rápido — a Supabase trocou o modelo de API keys em ~1 ano); `core/` ao menos 1×/ano e a cada nova edição OWASP/CWE.
 - Este é um playbook **opinativo e curado**: contribuições externas não são aceitas para preservar a integridade das normas. Encontrou um erro? Abra uma issue.
 - Quando sair nova edição da OWASP Top 10, tags e matriz são atualizadas.
 
