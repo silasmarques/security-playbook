@@ -31,8 +31,9 @@ last-review: 2026-06-11
 | Secret/credencial nova | [core/secrets-config.md](../core/secrets-config.md) |
 | Dependência nova | [core/dependencies-supply-chain.md](../core/dependencies-supply-chain.md) P3 |
 | Renderizar conteúdo de usuário/LLM | [core/frontend-security.md](../core/frontend-security.md) |
+| Escrever os testes de segurança da feature | [core/security-testing.md](../core/security-testing.md) |
 
-## 3. Critérios de pronto (a feature só está completa com)
+## 3. Critérios de pronto (a feature só está completa com — ver [core/security-testing.md](../core/security-testing.md))
 
 - [ ] Teste de isolamento: usuário A não acessa o recurso de B
 - [ ] Teste de validação: input malformado/excessivo é rejeitado com 400
