@@ -1,10 +1,11 @@
 ---
 owasp: [A07]
-last-review: 2026-06-11
+last-review: 2026-07-02
 sources:
   - https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html
   - https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html
   - https://supabase.com/docs/guides/auth
+  - https://supabase.com/docs/guides/auth/rate-limits
 ---
 
 # Autenticação
@@ -16,7 +17,7 @@ sources:
 - **R1 — MUST** delegar autenticação a um provedor estabelecido (Supabase Auth, OAuth de provedor conhecido). **NEVER** implementar armazenamento de senha próprio. Se for absolutamente inevitável: argon2id (preferido) ou bcrypt com cost ≥ 12 — nunca MD5/SHA-1/SHA-256 puro, com ou sem salt.
 - **R2 — MUST** validar o token no servidor a cada request que decide algo: assinatura verificada, `exp` respeitado, `aud`/`iss` conferidos. **NEVER** apenas decodificar o JWT e confiar no payload.
 - **R3 — MUST** usar `supabase.auth.getUser()` (valida o token contra o servidor) quando a decisão é de segurança. `getSession()` lê do storage local sem validar — serve para UX, não para autorização.
-- **R4 — MUST** aplicar rate limiting nos fluxos de credencial: login, signup, reset de senha, verificação de e-mail. São os endpoints mais atacados por força bruta e enumeração.
+- **R4 — MUST** aplicar rate limiting nos fluxos de credencial: login, signup, reset de senha, verificação de e-mail. São os endpoints mais atacados por força bruta e enumeração. Atenção: o padrão por usuário (`api-security.md` P2) exige `user_id` — não cobre pré-login; a defesa pré-auth é o P4 (limites nativos do provedor + IP na borda).
 - **R5 — MUST** retornar erros genéricos nos fluxos de credencial ("credenciais inválidas"). **NEVER** revelar se o e-mail existe ("usuário não encontrado" ≠ "senha errada" é enumeração de contas).
 - **R6 — MUST** tokens de reset/convite/verificação: single-use, expiração curta (≤ 1h), invalidados imediatamente após o uso e após novo pedido.
 - **R7 — NEVER** transportar credenciais ou tokens de sessão em URL (query string vaza em logs, histórico, Referer). Tokens em header `Authorization` ou cookie seguro.
@@ -76,7 +77,28 @@ async function handleLogin(email: string, password: string) {
 - Checar contra senhas vazadas quando o provedor suportar
   (Supabase: Auth > Settings > "Leaked password protection")
 - MFA habilitado para contas administrativas, oferecido para todas
+- Quando o provedor suportar, preferir MFA resistente a phishing (passkeys/WebAuthn):
+  TOTP protege contra reuso de senha, não contra phishing em tempo real
 ```
+
+### P4 — Rate limit pré-autenticação (limites nativos + borda)
+
+Antes do login não existe `user_id`, então o rate limit por usuário não alcança. A defesa vem em duas camadas:
+
+**1. Limites nativos do Supabase Auth** (validados na doc em 2026-07-02; configurar em Dashboard → Authentication → Rate Limits):
+
+| Endpoint | Default | Configurável? |
+|---|---|---|
+| E-mails (signup/reset, provedor built-in) | 2/hora | só com SMTP próprio |
+| OTP | 30/hora (projeto) | sim |
+| Verificação | 360/hora por IP | não |
+| Token refresh | 1800/hora por IP | não |
+| MFA | 15/hora por IP | não |
+
+> O provedor de e-mail built-in (2/h) é para desenvolvimento — produção configura
+> SMTP próprio e ajusta os limites de e-mail conscientemente.
+
+**2. Endpoints próprios pré-auth** (formulário público, contato, webhook de entrada): limite por IP na borda — WAF/firewall do host (Vercel, Cloudflare) — porque o contador em Postgres por usuário (`api-security.md` P2) não enxerga quem não tem conta.
 
 ## Anti-padrões
 
@@ -104,6 +126,6 @@ if (!userExists) return res.status(404).send("Usuário não encontrado");
 - [ ] Identidade sempre extraída do token verificado, nunca de body/query?
 - [ ] Erros de credencial são genéricos (sem enumeração de contas)?
 - [ ] Nenhum token/credencial em URL ou em log?
-- [ ] Fluxos de credencial têm rate limiting?
+- [ ] Fluxos de credencial têm rate limiting — nativos do provedor revisados + borda por IP nos endpoints próprios (P4)?
 - [ ] Tokens de reset/convite são single-use com expiração curta?
 - [ ] Mudança de senha/privilégio revoga sessões existentes?

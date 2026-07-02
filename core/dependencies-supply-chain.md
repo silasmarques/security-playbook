@@ -1,10 +1,12 @@
 ---
 owasp: [A03, A08]
-last-review: 2026-06-11
+last-review: 2026-07-02
 sources:
   - https://owasp.org/Top10/2025/
   - https://cheatsheetseries.owasp.org/cheatsheets/Vulnerable_Dependency_Management_Cheat_Sheet.html
   - https://docs.npmjs.com/cli/commands/npm-audit
+  - https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference
+  - https://docs.renovatebot.com/configuration-options/
 ---
 
 # Dependências e Supply Chain
@@ -21,6 +23,7 @@ sources:
 - **R6 — MUST** scripts de CDN com SRI (`integrity="sha384-..."`); preferível: tudo via bundle, sem CDN de terceiros em runtime.
 - **R7 — MUST** CI com permissões mínimas: `permissions: contents: read` como default do workflow; secrets só nos jobs que deles precisam; nunca em jobs que rodam código de PR de fork.
 - **R8 — NEVER** instalar pacote sugerido por IA sem verificar que existe, é o pacote certo e é mantido (slopsquatting: atacantes registram nomes que LLMs alucinam).
+- **R9 — MUST** cooldown de release nos updates automatizados: aguardar ≥ 3 dias (major: 7) antes de adotar versão recém-publicada. Os grandes comprometimentos de pacotes npm de 2025 foram detectados e removidos em horas — quem instalou no dia zero foi atingido; quem esperou, não. Exceção: patch para vulnerabilidade sendo explorada entra imediatamente, com review.
 
 ## Padrões prontos
 
@@ -59,7 +62,13 @@ updates:
     groups:
       minor-and-patch:
         update-types: ["minor", "patch"]   # agrupa o ruído; majors vêm sozinhos
+    cooldown:                              # R9: release recém-saída espera maturar
+      default-days: 3
+      semver-major-days: 7
 ```
+
+> Renovate: o equivalente é `"minimumReleaseAge": "3 days"`. Sintaxes validadas
+> nas docs oficiais em 2026-07-02.
 
 ### P3 — As 5 perguntas antes de adicionar dependência
 
@@ -103,3 +112,4 @@ npm install supabase-edge-helpers   # existe? é oficial? quem publicou?
 - [ ] Nenhum script de CDN sem SRI?
 - [ ] Workflows novos com `permissions` mínimas e secrets só onde precisa?
 - [ ] Dependabot/Renovate ativo no repo?
+- [ ] Cooldown de release configurado nos updates automatizados (R9)?
