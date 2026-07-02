@@ -4,6 +4,7 @@ last-review: 2026-06-11
 sources:
   - https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html
   - https://owasp.org/API-Security/editions/2023/en/0x11-t10/
+  - https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html
 ---
 
 # Segurança de APIs
@@ -20,6 +21,7 @@ sources:
 - **R6 — MUST** timeout explícito em toda chamada externa feita pelo endpoint; o handler responde mesmo com dependência travada.
 - **R7 — MUST** security headers em toda resposta (`secrets-config.md` P2) e CORS por allowlist de origens.
 - **R8 — MUST** escritas críticas que o cliente pode reenviar (pagamento, criação por retry automático) protegidas por idempotency key ou desenho idempotente.
+- **R9 — MUST** endpoint que autentica via **cookie de sessão** (inclui apps SSR) tem defesa anti-CSRF: token sincronizado (double-submit ou por-sessão) validado no servidor, **ou** `SameSite=Strict/Lax` como defesa primária apenas se o fluxo tolera. Endpoint que autentica **só via header `Authorization: Bearer`** é imune por design (o header não é enviado automaticamente pelo navegador) — mas isso é decisão a declarar, não presumir: registrar em comentário que a rota é Bearer-only. Mutação sensível via `GET` é proibida (não é protegível por CSRF token). [A01]
 
 ## Padrões prontos
 
@@ -129,6 +131,13 @@ catch (e) { return new Response(e.stack, { status: 500 }); }
 
 // ❌ NUNCA: operação de IA sem cap "porque é beta" [viola R2]
 const answer = await gemini.generate(prompt); // sem checkRateLimit antes
+
+// ❌ NUNCA: mutação de estado via GET em app com cookie de sessão [viola R9]
+// GET /account/delete?confirm=1  → <img src="...account/delete?confirm=1"> dispara sozinho
+// Mutação = POST/PUT/PATCH/DELETE + token anti-CSRF (ou Bearer-only declarado).
+
+// ❌ NUNCA: assumir "API não tem CSRF" sem checar como autentica [viola R9]
+// Se aceita cookie de sessão, é vulnerável mesmo sendo "API REST".
 ```
 
 ## Checklist
@@ -140,3 +149,4 @@ const answer = await gemini.generate(prompt); // sem checkRateLimit antes
 - [ ] Paginação com teto do servidor?
 - [ ] Chamadas externas com timeout?
 - [ ] CORS allowlist + security headers na resposta?
+- [ ] Rota com cookie de sessão tem token anti-CSRF? (Bearer-only → declarado em comentário)
