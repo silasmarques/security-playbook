@@ -10,11 +10,28 @@ Serve aos dois momentos da vida de um sistema:
 - **Construindo:** a IA (ou você) consulta o playbook enquanto o código nasce — e ele já nasce seguro.
 - **Mantendo:** rode o [pente fino](checklists/audit.md) num sistema que já existe e descubra, com relatório priorizado, o que está fora dos conformes.
 
-Não é material de estudo nem coletânea de boas práticas genéricas: é **norma operacional**. Regras objetivas (MUST/NEVER), padrões de código prontos para copiar, anti-padrões com o ataque explicado, e checklists verificáveis — tudo rastreável à **OWASP Top 10:2025**.
+Não é material de estudo nem coletânea de boas práticas genéricas: é **norma operacional**. Regras objetivas (MUST/NEVER), padrões de código prontos para copiar, anti-padrões com o ataque explicado, e checklists verificáveis — tudo rastreável à **OWASP Top 10:2025** e ao **CWE Top 25:2025**.
+
+**Em números:** 15 regras inegociáveis · 11 módulos [core/](core/) · 5 de [stack/](stack/) · 4 [checklists/](checklists/) · 2 [prompts/](prompts/) · 1 matriz [OWASP↔CWE](owasp-mapping.md) · [CI](.github/workflows/ci.yml) que verifica a norma · [suíte de adoção](eval/run-adoption.ts) que a mede.
+
+**Neste README:** [O que tem dentro](#-o-que-tem-dentro) · [Como usar](#-como-usar--passo-a-passo) · [Princípios de design](#-princípios-de-design) · [Manutenção e garantias](#-manutenção-e-versões) · [Playbook companheiro](#playbook-companheiro) · [Licença](#-licença)
 
 ---
 
 ## 📦 O que tem dentro
+
+```text
+security-playbook/
+├── SECURITY.md          ← porta de entrada: 15 inegociáveis + roteamento + instruções p/ IA
+├── owasp-mapping.md     ← matriz OWASP Top 10:2025 ↔ CWE Top 25:2025 (prova de cobertura)
+├── core/                ← 11 módulos universais (auth, input, crypto, logging, testing…)
+├── stack/               ← 5 módulos concretos (Supabase / Deno / React / IA / agentes)
+├── checklists/          ← 4 roteiros (new-project, new-feature, pre-commit, audit)
+├── prompts/             ← 2 prompts prontos (revisão de diff, análise pré-implementação)
+├── scripts/             ← verificação da norma (links, matriz, compilação dos exemplos)
+├── eval/                ← suíte de adoção (mede se a IA obedece o playbook)
+└── .github/workflows/   ← CI: verify-docs + check-code-blocks + gitleaks
+```
 
 ### A porta de entrada
 
@@ -50,7 +67,7 @@ Valem para qualquer stack web:
 
 Aplicação concreta em TypeScript/React/Supabase/Deno (princípios transferíveis para stacks equivalentes):
 
-- **[supabase-rls](stack/supabase-rls.md)** — A fronteira de dados quando a anon key é pública por design. RLS em toda tabela com policy por operação (incluindo o `WITH CHECK` que quase todo mundo esquece no UPDATE), índice nas colunas de policy, Storage com pasta por usuário, os perigos do `service_role` e do `SECURITY DEFINER`, e o teste de isolamento usuário A × usuário B.
+- **[supabase-rls](stack/supabase-rls.md)** — A fronteira de dados quando a chave publicável (`sb_publishable_…`; anon key no modelo legado) é pública por design. RLS em toda tabela com policy por operação (incluindo o `WITH CHECK` que quase todo mundo esquece no UPDATE), `(select auth.uid())` para o cache de initPlan, índice nas colunas de policy, Storage com pasta por usuário, os perigos do `service_role`/secret key e do `SECURITY DEFINER`, e o teste de isolamento usuário A × usuário B.
 
 - **[edge-functions-deno](stack/edge-functions-deno.md)** — Cada função é um endpoint público na internet. Template completo de função segura com o prólogo na ordem certa, helpers compartilhados em `_shared/` como única implementação, CORS por allowlist via env, webhooks verificados com HMAC timing-safe e secrets sem fallback.
 
