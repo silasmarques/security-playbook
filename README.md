@@ -151,6 +151,10 @@ Para auditar um sistema que já está no ar, use o roteiro completo de **[checkl
 3. **Vai commitar?** Passe o diff por [pre-commit.md](checklists/pre-commit.md).
 4. **Dúvida pontual?** A tabela de roteamento do [SECURITY.md](SECURITY.md) diz qual módulo abrir.
 
+### Playbook companheiro
+
+Segurança é metade da qualidade. A outra — **testar o que importa sem inflar a suíte** — vive no [testing-playbook](https://github.com/silasmarques/testing-playbook): decisão de teste por risco, camadas pela Testing Trophy, e playbooks de API/contrato/E2E/performance. Ele referencia este aqui para tudo que é segurança de teste (RLS, prompt injection, abuso). Para cobertura completa, adote os dois — clonados lado a lado.
+
 ---
 
 ## 🧭 Princípios de design
