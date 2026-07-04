@@ -1,6 +1,6 @@
 ---
 owasp: [A02]
-last-review: 2026-07-02
+last-review: 2026-07-03
 sources:
   - https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html
   - https://supabase.com/docs/guides/functions/secrets
@@ -22,6 +22,7 @@ sources:
 - **R5 — MUST** produção configurada explicitamente: debug/verbose OFF, security headers ON, CORS com origens nomeadas, mensagens de erro genéricas.
 - **R6 — NEVER** `Access-Control-Allow-Origin: *` em endpoint autenticado — e a combinação `*` + `Allow-Credentials: true` é inválida e perigosa.
 - **R7 — MUST** manter inventário de onde cada secret vive (Vercel env, Supabase secrets, GitHub secrets) e como rotacionar. Rotação que ninguém sabe fazer é rotação que não acontece.
+- **R8 — MUST** tratar mudança em config/secret/variável de ambiente como **mudança de risco**. Para cada valor, saber se é consumido em **build-time** (embutido no artefato gerado — precisa existir no momento do build) ou em **runtime** (lido pelo processo em execução — precisa existir no ambiente de execução), e garantir que exista no **ambiente de destino** (produção/staging), não só no local. Mover, remover, renomear ou trocar a fonte de uma config é mudança de risco: verificar no ambiente/artefato real de destino antes de declarar concluído — "funciona no meu local" não é evidência. Config crítica ausente **falha o build ou o boot** — nunca inicia degradada em silêncio.
 
 ## Padrões prontos
 
@@ -123,6 +124,9 @@ headers.set("Access-Control-Allow-Credentials", "true");
 - [ ] Nenhuma variável `VITE_` contém credencial não-pública?
 - [ ] Secret novo registrado no inventário (P1) no ambiente certo?
 - [ ] Sem fallback hardcoded para env ausente — falhar rápido em vez de degradar?
+- [ ] Cada variável está classificada (build-time vs runtime) e existe no ambiente de destino, não só no local?
+- [ ] Mudança que altera a origem da config (mover/remover/renomear/trocar fonte) foi verificada no artefato/ambiente real de destino?
+- [ ] Config crítica ausente falha o build/boot (sem degradação silenciosa)?
 - [ ] CORS do endpoint novo usa allowlist de origens?
 - [ ] Security headers presentes nas respostas?
 - [ ] CI do repo roda secret scan automatizado (gitleaks) além do scan manual do diff (P4)?

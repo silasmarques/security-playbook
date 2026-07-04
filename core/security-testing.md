@@ -1,6 +1,6 @@
 ---
-owasp: [A01, A05, A06]
-last-review: 2026-07-02
+owasp: [A01, A02, A05, A06]
+last-review: 2026-07-03
 sources:
   - https://owasp.org/www-project-web-security-testing-guide/
   - https://cheatsheetseries.owasp.org/cheatsheets/Abuse_Case_Cheat_Sheet.html
@@ -18,6 +18,7 @@ sources:
 - **R4 — MUST** validação de fronteira tem teste com **input malformado, excessivo e do tipo errado** — não só o payload válido. Vetores com cara de ataque (aspas SQL, `<script>`, `../`, string gigante) são **obrigatórios na suíte**: é assim que se prova que o schema rejeita. [A05]
 - **R5 — MUST** feature com superfície de segurança só está **pronta** quando os testes de segurança dela estão verdes — critério de aceite, não "depois eu adiciono".
 - **R6 — NEVER** mockar o próprio controle que se quer testar (auth, RLS, validação). Mock que pula a autenticação testa o mock, não a segurança. Teste de segurança exercita o controle real.
+- **R7 — MUST** toda verificação — teste automatizado, checagem de deploy, validação de mudança — precisa ser capaz de **FALHAR quando o alvo está quebrado**. Validar o **artefato/estado final real** (o que foi publicado, o que o ambiente de destino efetivamente serve), nunca um proxy que existe independentemente do resultado. Verificação que passaria mesmo com o sistema quebrado é falsa confiança — pior que nenhuma, porque encerra a investigação. Teste de mesa antes de declarar "verificado": *"se isto estivesse quebrado, este check acusaria?"* — se a resposta for não, o check está errado.
 
 ## Padrões prontos
 
@@ -139,3 +140,4 @@ test("usuário lê seu documento", async () => { /* só o dono, nunca o A×B */ 
 - [ ] Validação testada com input malformado/excessivo/tipo errado (R4)?
 - [ ] Testes de segurança verdes antes de considerar a feature pronta (R5)?
 - [ ] Nenhum mock substituindo o controle sob teste (R6)?
+- [ ] Cada verificação foi desenhada para poder falhar se o alvo estiver quebrado — valida o artefato real, não um proxy (R7)?

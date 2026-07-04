@@ -24,6 +24,7 @@ Violação de qualquer item abaixo é bug de segurança, independente de context
 13. **Logs: eventos de segurança SIM; secrets/tokens/PII NÃO.** Operação crítica vai para `audit_log`. [A09]
 14. **CORS por allowlist + security headers em toda resposta.** Nunca `*` com credenciais. [A02]
 15. **TypeScript estrito; `unknown` + schema nas fronteiras.** Conteúdo externo em prompt de LLM sempre delimitado como dado. [A06][A05]
+16. **Mudança de config/deploy é verificada no ambiente real, e verificação precisa poder falhar.** Saber build-time vs runtime; config crítica ausente falha o build/boot (nunca degrada em silêncio); validar o artefato publicado, não um proxy. [A02]
 
 ## Bloco 2 — Roteamento: "vou fazer X → leio Y"
 

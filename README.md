@@ -12,7 +12,7 @@ Serve aos dois momentos da vida de um sistema:
 
 Não é material de estudo nem coletânea de boas práticas genéricas: é **norma operacional**. Regras objetivas (MUST/NEVER), padrões de código prontos para copiar, anti-padrões com o ataque explicado, e checklists verificáveis — tudo rastreável à **OWASP Top 10:2025** e ao **CWE Top 25:2025**.
 
-**Em números:** 15 regras inegociáveis · 11 módulos [core/](core/) · 5 de [stack/](stack/) · 4 [checklists/](checklists/) · 2 [prompts/](prompts/) · 1 matriz [OWASP↔CWE](owasp-mapping.md) · [CI](.github/workflows/ci.yml) que verifica a norma · [suíte de adoção](eval/run-adoption.ts) que a mede.
+**Em números:** 16 regras inegociáveis · 11 módulos [core/](core/) · 5 de [stack/](stack/) · 4 [checklists/](checklists/) · 2 [prompts/](prompts/) · 1 matriz [OWASP↔CWE](owasp-mapping.md) · [CI](.github/workflows/ci.yml) que verifica a norma · [suíte de adoção](eval/run-adoption.ts) que a mede.
 
 **Neste README:** [O que tem dentro](#-o-que-tem-dentro) · [Como usar](#-como-usar--passo-a-passo) · [Princípios de design](#-princípios-de-design) · [Manutenção e garantias](#-manutenção-e-versões) · [Playbook companheiro](#playbook-companheiro) · [Licença](#-licença)
 
@@ -22,7 +22,7 @@ Não é material de estudo nem coletânea de boas práticas genéricas: é **nor
 
 ```text
 security-playbook/
-├── SECURITY.md          ← porta de entrada: 15 inegociáveis + roteamento + instruções p/ IA
+├── SECURITY.md          ← porta de entrada: 16 inegociáveis + roteamento + instruções p/ IA
 ├── owasp-mapping.md     ← matriz OWASP Top 10:2025 ↔ CWE Top 25:2025 (prova de cobertura)
 ├── core/                ← 11 módulos universais (auth, input, crypto, logging, testing…)
 ├── stack/               ← 5 módulos concretos (Supabase / Deno / React / IA / agentes)
@@ -35,7 +35,7 @@ security-playbook/
 
 ### A porta de entrada
 
-**[SECURITY.md](SECURITY.md)** — 15 regras inegociáveis + tabela de roteamento ("vou fazer X → leio Y") + instruções de como uma IA deve consultar e reportar conformidade. É o único arquivo que precisa estar sempre à mão; o resto é consultado sob demanda.
+**[SECURITY.md](SECURITY.md)** — 16 regras inegociáveis + tabela de roteamento ("vou fazer X → leio Y") + instruções de como uma IA deve consultar e reportar conformidade. É o único arquivo que precisa estar sempre à mão; o resto é consultado sob demanda.
 
 ### 11 módulos universais — [core/](core/)
 
@@ -47,7 +47,7 @@ Valem para qualquer stack web:
 
 - **[input-validation](core/input-validation.md)** — A fronteira entre o mundo hostil e o seu código. Validação por schema (zod) de todo input externo, queries sempre parametrizadas contra injection, upload validado em 4 dimensões (extensão, content-type, tamanho, nome) e por que blocklist de "caracteres perigosos" nunca é a defesa.
 
-- **[secrets-config](core/secrets-config.md)** — Onde cada tipo de chave deve morar (frontend público × secrets do servidor × CI), o que jamais pode ir para o bundle, separação por ambiente, o que fazer quando um secret vaza, security headers de referência e CORS por allowlist.
+- **[secrets-config](core/secrets-config.md)** — Onde cada tipo de chave deve morar (frontend público × secrets do servidor × CI), o que jamais pode ir para o bundle, separação por ambiente, o que fazer quando um secret vaza, mudança de config/env como mudança de risco (build-time × runtime, verificada no ambiente real, falha o build se faltar), security headers de referência e CORS por allowlist.
 
 - **[crypto-data-protection](core/crypto-data-protection.md)** — Criptografia sem inventar moda. AES-256-GCM com IV único para dado que precisa voltar, hash para senha (nunca o contrário), CSPRNG para tokens, comparação timing-safe para HMAC/assinaturas e payloads assinados com expiração anti-replay.
 
@@ -61,7 +61,7 @@ Valem para qualquer stack web:
 
 - **[logging-monitoring](core/logging-monitoring.md)** — Saber que o ataque aconteceu. Quais eventos de segurança logar e com qual estrutura, o que jamais pode ir para log (tokens, PII, chaves), anti log-injection, trilha de auditoria persistente e o alerta mínimo viável.
 
-- **[security-testing](core/security-testing.md)** — Provar que os controles negam o acesso indevido, não só que o caminho feliz funciona. Teste negativo para todo controle, teste de acesso cruzado A×B (anti-IDOR), estouro de rate limit, vetores de input inválido na própria suíte e critérios de aceite em BDD defensivo (Gherkin). Pensar como atacante, verificado como teste.
+- **[security-testing](core/security-testing.md)** — Provar que os controles negam o acesso indevido, não só que o caminho feliz funciona. Teste negativo para todo controle, teste de acesso cruzado A×B (anti-IDOR), estouro de rate limit, vetores de input inválido na própria suíte, critérios de aceite em BDD defensivo (Gherkin) e o princípio de que toda verificação precisa poder falhar — validar o artefato real, não um proxy. Pensar como atacante, verificado como teste.
 
 ### 5 módulos de stack — [stack/](stack/)
 
