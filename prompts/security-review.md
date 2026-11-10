@@ -15,7 +15,8 @@ Contexto:
 Tarefa:
 1. Consulte o roteamento do SECURITY.md e abra os módulos aplicáveis.
 2. Identifique riscos de segurança no código analisado.
-3. Para CADA achado, use o formato abaixo.
+3. Para CADA achado, use o formato abaixo e siga explore/PROTOCOLO.md: o achado é
+   "confirmado" (com a prova) ou "suspeito" (com o que falta verificar) — nunca "provavelmente".
 4. Classifique a severidade pelo critério do checklists/audit.md
    (CRÍTICO/ALTO/MÉDIO/BAIXO).
 5. Termine com o checklist de PR.
@@ -25,7 +26,9 @@ para a suíte do próprio projeto são bem-vindos (core/security-testing.md).
 
 Formato de cada achado:
 ### [SEVERIDADE] <título curto>
+- **Estado:** confirmado | suspeito
 - **Risco:** o que está errado
+- **Evidência:** o que foi visto/executado (rastro arquivo:linha da entrada ao dano, ou o teste)
 - **Por que importa:** o que o atacante ganha / o que vaza
 - **Onde:** arquivo:linha
 - **Regra violada:** módulo + Rx do playbook, OWASP [A0x], CWE-nnn quando couber
@@ -36,4 +39,6 @@ Formato de cada achado:
 Ao final:
 ## Checklist de PR
 Rode o checklists/pre-commit.md sobre o diff e marque cada item.
+## Cobertura
+O que foi analisado e o que NÃO foi (arquivos fora do diff, o que depende de ambiente).
 ```

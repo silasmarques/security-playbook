@@ -1,6 +1,6 @@
 ---
 owasp: [A01, A03, A05]
-last-review: 2026-07-02
+last-review: 2026-11-10
 sources:
   - https://owasp.org/www-project-top-10-for-large-language-model-applications/
   - https://modelcontextprotocol.io/
@@ -39,6 +39,8 @@ Reprovou em 2+ → não entra na sua sessão.
 
 ### P2 — Allowlist de permissões do agente (exemplo: Claude Code)
 
+Sintaxe do harness muda entre versões — conferir na documentação dele antes de copiar.
+
 ```jsonc
 // .claude/settings.json — versionado: o time inteiro herda a mesma política.
 {
@@ -53,13 +55,15 @@ Reprovou em 2+ → não entra na sua sessão.
     ],
     "deny": [
       "Read(.env*)",              // segredo não entra em contexto nem "só para ler"
-      "Bash(curl:*)",             // rede arbitrária = canal de exfiltração (R4)
+      "Bash(curl:*)",             // reduz, NÃO fecha a rede: wget, node -e, python fazem o mesmo
       "Bash(rm -rf:*)"
     ]
   }
 }
 // Princípio (vale para qualquer harness): leitura ampla, escrita/execução por
-// allowlist nomeada, rede restrita, e o que não está na lista pergunta antes.
+// allowlist nomeada, e o que não está na lista pergunta antes.
+// Negar comando por nome é lista de bloqueio — tem bypass. Quem de fato restringe
+// rede e arquivos é o SANDBOX do harness: ligar quando existir.
 ```
 
 ### P3 — Checklist de review de diff de agente

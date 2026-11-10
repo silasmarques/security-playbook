@@ -15,9 +15,11 @@ Texto legal completo: https://creativecommons.org/licenses/by-nd/4.0/legalcode.p
 
 - **Redistribuir versões modificadas** — se você remixar, transformar ou criar a partir deste material, não pode distribuir o material resultante. Adaptações para uso interno/privado são permitidas; o que a licença veda é a *redistribuição* de derivados.
 
-## Exceção: trechos de código
+## Exceção: todo o código é MIT
 
-**Os blocos de código contidos nos módulos (TypeScript, SQL, YAML, etc.) são licenciados à parte, sob a [Licença MIT](https://opensource.org/license/mit):** você pode copiá-los, adaptá-los e incorporá-los aos seus projetos livremente, inclusive comerciais, sem necessidade de atribuição no código. A restrição ND aplica-se ao playbook como obra (texto, estrutura, regras e organização), não aos snippets.
+**O código deste repositório é licenciado à parte, sob a [Licença MIT](https://opensource.org/license/mit):** as pastas `kit/`, `explore/`, `scripts/` e `eval/`, a cobaia em `lab/`, e os blocos de código contidos nos módulos (TypeScript, SQL, YAML etc.). Você pode copiar, adaptar e incorporar aos seus projetos livremente, inclusive comerciais, sem necessidade de atribuição no código. A restrição ND aplica-se ao playbook como obra (texto, estrutura, regras e organização), não ao código.
+
+O código é fornecido "como está", sem garantia de qualquer tipo. A cobaia (`lab/cobaia/`) é vulnerável de propósito e não deve ser usada como exemplo.
 
 ## Erros e sugestões
 

@@ -3,5 +3,16 @@ node_modules/
 Thumbs.db
 *.tmp
 
+# Segredos — a própria norma (secrets-config R1) vale aqui
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Relatórios de exploração e de avaliação: podem citar caminhos e achados de projetos reais
+relatorio*.md
+achados*.json
+
 # Artefatos internos de processo (specs/planos) — não fazem parte do produto público
 docs/

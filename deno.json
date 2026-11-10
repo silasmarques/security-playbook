@@ -1,0 +1,25 @@
+{
+  "tasks": {
+    "test": "deno test --allow-read --allow-write --allow-env --allow-net --allow-run kit/ explore/ eval/ scripts/",
+    "docs": "deno run --allow-read scripts/verify-docs.ts",
+    "snippets": "deno run --allow-read scripts/sync-snippets.ts --check",
+    "snippets:write": "deno run --allow-read --allow-write scripts/sync-snippets.ts",
+    "blocks": "deno run --allow-read --allow-write --allow-run --allow-net --allow-env scripts/check-code-blocks.ts",
+    "mutation": "deno run --allow-read --allow-write --allow-run --allow-env --allow-net scripts/mutation-check.ts",
+    "explore": "deno run --allow-read --allow-write --allow-env --allow-net explore/cli.ts",
+    "ci": "deno task docs && deno task snippets && deno check kit/ explore/ eval/ scripts/ && deno task blocks && deno task test && deno task mutation"
+  },
+  "imports": {
+    "@electric-sql/pglite": "npm:@electric-sql/pglite@0.3.16",
+    "@electric-sql/pglite/": "npm:/@electric-sql/pglite@0.3.16/",
+    "@std/assert": "jsr:@std/assert@1.0.13",
+    "@supabase/supabase-js": "jsr:@supabase/supabase-js@2.49.8"
+  },
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true
+  },
+  "exclude": ["lab/cobaia/"],
+  "lock": true
+}

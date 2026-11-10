@@ -13,7 +13,8 @@ Entrada:
 - Regra de negócio: [restrições, quem pode o quê]
 - Código/rascunho (se houver): [colar]
 
-Tarefa — rode o checklists/new-feature.md (as 5 perguntas de ameaça) e devolva:
+Tarefa — rode o checklists/new-feature.md (as 5 perguntas de ameaça; para feature que
+toca dinheiro, dado sensível ou IA, o modelo completo de core/secure-design.md P1) e devolva:
 
 ## Riscos
 Por risco: descrição, severidade (CRÍTICO/ALTO/MÉDIO/BAIXO, critério do audit.md),
@@ -30,7 +31,9 @@ rate limit) — modelo em core/security-testing.md P4.
 Itens verificáveis, derivados dos módulos que o roteamento indicar.
 
 ## Sugestão de implementação segura
-Como implementar seguindo os padrões prontos dos módulos aplicáveis (citar Px).
+Como implementar seguindo os padrões prontos dos módulos aplicáveis (citar Px) —
+usando os arquivos do kit (kit/README.md), não reescrevendo de memória.
+Marque o que é fato conferido no código e o que é hipótese a validar.
 
 ## Pontos para code review
 Backend / Frontend / Banco: o que o revisor deve conferir em cada camada.

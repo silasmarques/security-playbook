@@ -1,74 +1,86 @@
 ---
 owasp: [A01, A02, A03, A04, A05, A06, A07, A08, A09, A10]
-last-review: 2026-06-11
+last-review: 2026-11-10
 ---
 
-# Checklist: Auditoria de Sistema Existente (pente fino)
+# Checklist: Explorar um Sistema Existente
 
-> Para quando o sistema JÁ existe e você quer saber se está nos conformes. O roteiro percorre o playbook inteiro contra o código real e termina com um relatório priorizado. Com uma IA, uma auditoria completa leva de 1 a 3 sessões; o prompt pronto está no final.
+> Para quando o sistema JÁ existe e você quer saber onde ele quebra. O roteiro começa pelo que é barato e certo (varredura), passa pelo que exige raciocínio (caça), e termina num registro que fica no projeto. Regra do começo ao fim: [protocolo de evidência](../explore/PROTOCOLO.md) — nada é "provavelmente vulnerável", e todo relatório diz o que **não** foi analisado.
+
+## Etapa 0 — Varredura (minutos, reproduzível)
+
+- [ ] Rodar `deno task explore <projeto> --md relatorio.md` a partir do clone do playbook
+- [ ] Ler a seção **Cobertura** antes dos achados: quantas migrations aplicaram? Alguma falhou? O banco foi analisado?
+- [ ] Código de saída `2` = análise incompleta: o resultado não é um "limpo"
 
 ## Etapa 1 — Inventário (mapear a superfície)
 
-Antes de auditar, liste o que existe. Sem inventário, a auditoria audita só o que lembra.
+Sem inventário, a exploração só olha o que lembra.
 
-- [ ] **Endpoints/funções:** todos os handlers HTTP (Edge Functions, rotas de API) — nome e o que fazem
-- [ ] **Tabelas e buckets:** todas as tabelas do schema exposto + buckets de Storage
-- [ ] **Pontos de entrada de dados:** forms, uploads, webhooks, integrações que RECEBEM dados
-- [ ] **Chamadas de saída:** APIs de terceiros, fetches dinâmicos, chamadas a modelos de IA
-- [ ] **Secrets:** todas as variáveis de ambiente/chaves e ONDE vivem
-- [ ] **Dependências:** `package.json` + lockfile presentes
+- [ ] **Endpoints/funções:** todos os handlers HTTP — nome, o que fazem, como autenticam
+- [ ] **Dados:** tabelas, buckets e a classe de cada um (`secure-design` P2)
+- [ ] **Entradas:** forms, uploads, webhooks, integrações que RECEBEM dados
+- [ ] **Saídas:** APIs de terceiros, fetches dinâmicos, chamadas a modelos de IA — e o custo de cada uma
+- [ ] **Segredos:** todas as chaves e ONDE vivem
+- [ ] **Recursos contáveis e operações de uma vez só:** créditos, cotas, pagamentos, convites
 
-## Etapa 2 — Varredura por módulo
+## Etapa 2 — Triagem dos suspeitos
 
-Rodar o **Checklist** de cada módulo contra o inventário. Ordem sugerida (do mais crítico ao menos):
+- [ ] Cada **suspeito** da varredura vira **confirmado** (com prova) ou **descartado** (com motivo)
+- [ ] Suspeito de banco: provar na bancada ([explore/supabase/probe.ts](../explore/supabase/probe.ts)) executando como outro usuário
+- [ ] Exceção legítima: registrar no código (`playbook-ignore: <REGRA> <motivo>`) e no `SECURITY-STATUS.md`
 
-| # | Módulo | Aplicar sobre |
+## Etapa 3 — Caça por classe (o que a varredura não vê)
+
+Um roteiro por vez, contra o inventário. Ordem do mais grave ao menos:
+
+| # | Roteiro | Pergunta |
 |---|---|---|
-| 1 | [supabase-rls](../stack/supabase-rls.md) | cada tabela e bucket do inventário |
-| 2 | [authorization](../core/authorization.md) | cada endpoint (helper central? anti-IDOR? SSRF nos fetches?) |
-| 3 | [authentication](../core/authentication.md) | fluxos de login/sessão/reset |
-| 4 | [api-security](../core/api-security.md) | cada endpoint (prólogo completo? rate limit nos caros?) |
-| 5 | [input-validation](../core/input-validation.md) | cada ponto de entrada de dados |
-| 6 | [secrets-config](../core/secrets-config.md) | cada secret + headers + CORS |
-| 7 | [ai-llm-security](../stack/ai-llm-security.md) | cada feature de IA (se houver) |
-| 8 | [crypto-data-protection](../core/crypto-data-protection.md) | dados sensíveis armazenados |
-| 9 | [error-handling-resilience](../core/error-handling-resilience.md) | catches, timeouts, retries |
-| 10 | [logging-monitoring](../core/logging-monitoring.md) | o que é logado e o que deveria ser |
-| 11 | [dependencies-supply-chain](../core/dependencies-supply-chain.md) | `npm audit` + CI |
-| 12 | [frontend-security](../core/frontend-security.md) + [react-typescript](../stack/react-typescript.md) | innerHTML, CSP, tsconfig, redirects |
+| 1 | [acesso-cruzado](../explore/hunts/acesso-cruzado.md) | um usuário alcança o que é de outro, ou vira o que não é? |
+| 2 | [injecao-e-ssrf](../explore/hunts/injecao-e-ssrf.md) | dado de fora vira comando, HTML, caminho ou destino de rede? |
+| 3 | [ia-e-agentes](../explore/hunts/ia-e-agentes.md) | quem escreve o que o modelo lê consegue mandar no sistema? |
+| 4 | [custo-e-logica](../explore/hunts/custo-e-logica.md) | dá para usar sem pagar, repetir, ou ganhar uma corrida? |
+| 5 | [segredos-e-config](../explore/hunts/segredos-e-config.md) | há chave onde não devia, ou porta aberta por configuração? |
 
-## Etapa 3 — Cobertura OWASP
+## Etapa 4 — Conformidade módulo a módulo
 
-- [ ] Conferir no [owasp-mapping.md](../owasp-mapping.md) se alguma categoria ficou sem verificação na Etapa 2
+O que a caça não cobriu: rodar o **Checklist** de cada módulo aplicável contra o inventário.
 
-## Etapa 4 — Relatório priorizado
+- [ ] [authentication](../core/authentication.md) · [crypto-data-protection](../core/crypto-data-protection.md) · [logging-monitoring](../core/logging-monitoring.md) · [dependencies-supply-chain](../core/dependencies-supply-chain.md) · [frontend-security](../core/frontend-security.md) · [secure-design](../core/secure-design.md)
+- [ ] Conferir no [owasp-mapping.md](../owasp-mapping.md) se alguma categoria ficou sem verificação
 
-Cada achado vira uma linha com:
+## Etapa 5 — Fora do repositório
 
-```text
-[CRÍTICO|ALTO|MÉDIO|BAIXO] <onde> — <o quê> — <regra violada> — <correção sugerida>
-```
+- [ ] Configuração feita no painel da plataforma (Auth, limites, buckets, chaves ativas) e os verificadores dela
+- [ ] Histórico do git: secret scan com histórico completo (`secrets-config` P4)
+- [ ] Dependências: `npm audit` / OSV
+- [ ] O ambiente **publicado**: headers e erros que o servidor de fato devolve
 
-Critério de severidade: **CRÍTICO** = exploração direta expõe dados/dinheiro (RLS ausente, IDOR, secret vazado); **ALTO** = exploração viável com esforço (sem rate limit em IA, CORS aberto); **MÉDIO** = defesa em profundidade ausente (sem timeout, log fraco); **BAIXO** = higiene (TS não-estrito, header faltando).
+## Etapa 6 — Relatório e registro
 
-- [ ] Achados CRÍTICOS corrigidos antes de qualquer outra coisa
-- [ ] Demais achados viram issues/backlog com a severidade na etiqueta
+- [ ] Cada achado no formato do protocolo (estado, onde, evidência, correção, **teste que prova a correção**)
+- [ ] Seção final: o que foi analisado e o que NÃO foi
+- [ ] CRÍTICOS corrigidos antes de qualquer outra coisa — e cada correção acompanhada do teste que antes falhava
+- [ ] `SECURITY-STATUS.md` do projeto atualizado ([modelo](../templates/SECURITY-STATUS.md)): achados em aberto, exceções, data
+- [ ] Rodar a varredura de novo depois das correções
 
 ## Prompt pronto (para usar com sua IA)
 
 ```text
-Faça uma auditoria de segurança deste projeto usando o security-playbook
-(<caminho-do-clone>/SECURITY.md).
+Explore a segurança deste projeto usando o security-playbook
+(<caminho-do-clone>/SECURITY.md), seguindo checklists/audit.md.
 
-Siga o roteiro de checklists/audit.md:
-1. Monte o inventário (Etapa 1) lendo o código real do projeto.
-2. Percorra os checklists dos módulos na ordem da Etapa 2, conferindo cada
-   item contra o código — cite arquivo e linha do achado.
-3. Confira a cobertura OWASP (Etapa 3).
-4. Entregue o relatório priorizado no formato da Etapa 4.
+1. Rode a varredura: deno task explore <este-projeto> --md relatorio.md
+   (a partir do clone do playbook) e leia primeiro a seção de cobertura.
+2. Monte o inventário (Etapa 1) lendo o código real.
+3. Faça a triagem de cada suspeito e depois a caça pelos roteiros de
+   explore/hunts/, um por vez.
+4. Siga explore/PROTOCOLO.md: todo achado é "confirmado" (com a prova) ou
+   "suspeito" (com o que falta verificar). Nada de "provavelmente".
+   Prova de execução só em ambiente local — nunca em produção.
+5. Termine dizendo o que foi analisado e o que NÃO foi.
 
 Não corrija nada ainda — primeiro o relatório completo, depois decidimos juntos.
 ```
 
-> Dica: em projetos grandes, rode uma etapa por sessão (inventário → varredura
-> 1-6 → varredura 7-12 → relatório) para manter a qualidade da análise.
+> Em projeto grande, uma etapa por sessão (varredura + inventário → triagem → um roteiro de caça por vez → relatório) mantém a qualidade da análise.

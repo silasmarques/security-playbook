@@ -1,6 +1,6 @@
 ---
 owasp: [A05, A06]
-last-review: 2026-06-11
+last-review: 2026-11-10
 sources:
   - https://www.typescriptlang.org/tsconfig/
   - https://vite.dev/guide/env-and-mode
@@ -19,7 +19,7 @@ sources:
 - **R4 — MUST** XSS: seguir `../core/frontend-security.md` (wrapper `SafeHtml`, `safeHref`). Este módulo não duplica — referencia.
 - **R5 — MUST** validar `import.meta.env` na inicialização com schema (P3) e falhar rápido se faltar variável — app que sobe com env errada falha de formas criativas e silenciosas.
 - **R6 — MUST** guarda de rota única (`<RequireAuth>`) envolvendo as rotas autenticadas — nunca checagem copiada página a página. E lembrar: guard de UI é UX; a segurança real é RLS + validação no servidor.
-- **R7 — MUST** redirect pós-login por allowlist de path interno (P4). **NEVER** `navigate(searchParams.get("next"))` cru — open redirect serve phishing com o SEU domínio.
+- **R7 — MUST** redirect pós-login só para caminho interno, conferido **depois de resolver a URL** (P4) — checar "começa com `/`" não basta. **NEVER** `navigate(searchParams.get("next"))` cru — open redirect serve phishing com o SEU domínio.
 - **R8 — MUST** estado sensível digitado pelo usuário (chave BYOK, senha de integração): enviar direto ao servidor para criptografia; **NEVER** persistir em localStorage/sessionStorage em claro nem manter em estado global além do necessário.
 
 ## Padrões prontos
@@ -41,6 +41,8 @@ sources:
 
 ### P2 — Fronteira de API tipada de verdade
 
+<!-- ilustrativo -->
+
 ```typescript
 import { z } from "zod";
 
@@ -60,6 +62,8 @@ export async function fetchArtifact(id: string) {
 
 ### P3 — Validação de env na inicialização
 
+<!-- ilustrativo -->
+
 ```typescript
 // src/env.ts — importado no main.tsx antes de tudo
 import { z } from "zod";
@@ -73,8 +77,9 @@ const envSchema = z.object({
 export const env = envSchema.parse(import.meta.env); // falha no boot, não no clique
 ```
 
-### P4 — Guard de rota + redirect allowlistado
+### P4 — Guard de rota + redirect só para caminho interno
 
+<!-- ilustrativo -->
 ```tsx
 export function RequireAuth({ children }: { children: React.ReactNode }) {
   const { session, loading } = useAuth();
@@ -85,15 +90,25 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
   }
   return <>{children}</>;
 }
+```
 
-// Pós-login: só paths internos passam
-function safeNext(next: unknown): string {
-  return typeof next === "string" && next.startsWith("/") && !next.startsWith("//")
-    ? next
-    : "/";
+O destino pós-login passa por `safeNext` — que resolve a URL e confere a origem, porque `//evil.com`, `/\evil.com` e `/<tab>/evil.com` começam com barra e saem do site:
+
+<!-- kit: kit/web/safe-url.ts#safeNext -->
+```typescript
+/** Destino pós-login: só caminho INTERNO. Resolve contra a própria origem e
+ *  confere que continuou nela — `//evil.com`, `/\evil.com` e `/%09/evil.com`
+ *  parecem caminhos e o navegador os trata como outro site. */
+export function safeNext(next: unknown, origin: string): string {
+  if (typeof next !== "string" || !next.startsWith("/")) return "/";
+  try {
+    const url = new URL(next, origin);
+    if (url.origin !== new URL(origin).origin) return "/";
+    return url.pathname + url.search + url.hash;
+  } catch {
+    return "/";
+  }
 }
-const { state } = useLocation();
-navigate(safeNext(state?.next));
 ```
 
 ## Anti-padrões

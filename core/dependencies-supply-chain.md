@@ -1,12 +1,13 @@
 ---
 owasp: [A03, A08]
-last-review: 2026-07-02
+last-review: 2026-11-10
 sources:
   - https://owasp.org/Top10/2025/
   - https://cheatsheetseries.owasp.org/cheatsheets/Vulnerable_Dependency_Management_Cheat_Sheet.html
   - https://docs.npmjs.com/cli/commands/npm-audit
   - https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference
   - https://docs.renovatebot.com/configuration-options/
+  - https://docs.github.com/en/actions/reference/security/secure-use
 ---
 
 # Dependências e Supply Chain
@@ -23,6 +24,7 @@ sources:
 - **R6 — MUST** scripts de CDN com SRI (`integrity="sha384-..."`); preferível: tudo via bundle, sem CDN de terceiros em runtime.
 - **R7 — MUST** CI com permissões mínimas: `permissions: contents: read` como default do workflow; secrets só nos jobs que deles precisam; nunca em jobs que rodam código de PR de fork.
 - **R8 — NEVER** instalar pacote sugerido por IA sem verificar que existe, é o pacote certo e é mantido (slopsquatting: atacantes registram nomes que LLMs alucinam).
+- **R10 — MUST** GitHub Actions de terceiros fixadas pelo **SHA completo do commit** (com a versão em comentário), não por tag. Tag é móvel: quem compromete o repositório da action reaponta `v4` e o seu CI executa o código dele com os seus secrets. Vale para toda action fora da sua organização.
 - **R9 — MUST** cooldown de release nos updates automatizados: aguardar ≥ 3 dias (major: 7) antes de adotar versão recém-publicada. Os grandes comprometimentos de pacotes npm de 2025 foram detectados e removidos em horas — quem instalou no dia zero foi atingido; quem esperou, não. Exceção: patch para vulnerabilidade sendo explorada entra imediatamente, com review.
 
 ## Padrões prontos
@@ -40,8 +42,8 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with: { node-version: 22, cache: npm }
       - run: npm ci                              # respeita o lockfile
       - run: npm audit --audit-level=high        # falha em high/critical
@@ -67,8 +69,7 @@ updates:
       semver-major-days: 7
 ```
 
-> Renovate: o equivalente é `"minimumReleaseAge": "3 days"`. Sintaxes validadas
-> nas docs oficiais em 2026-07-02.
+> Renovate: o equivalente é `"minimumReleaseAge": "3 days"`. O `cooldown` do Dependabot vale só para atualizações de versão — atualização de segurança entra sem espera. Sintaxe reconferida na doc oficial em 2026-11-10. Para manter os SHAs das actions atualizados, acrescentar `package-ecosystem: github-actions` ao mesmo arquivo.
 
 ### P3 — As 5 perguntas antes de adicionar dependência
 
@@ -113,3 +114,4 @@ npm install supabase-edge-helpers   # existe? é oficial? quem publicou?
 - [ ] Workflows novos com `permissions` mínimas e secrets só onde precisa?
 - [ ] Dependabot/Renovate ativo no repo?
 - [ ] Cooldown de release configurado nos updates automatizados (R9)?
+- [ ] Actions de terceiros fixadas por SHA de commit (R10)?

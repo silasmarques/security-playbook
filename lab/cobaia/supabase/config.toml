@@ -1,0 +1,7 @@
+project_id = "caderno"
+
+[api]
+schemas = ["public"]
+
+[functions.webhook-pagamento]
+verify_jwt = false

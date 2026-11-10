@@ -1,6 +1,6 @@
 ---
 owasp: [A01, A02, A05, A06]
-last-review: 2026-07-03
+last-review: 2026-11-10
 sources:
   - https://owasp.org/www-project-web-security-testing-guide/
   - https://cheatsheetseries.owasp.org/cheatsheets/Abuse_Case_Cheat_Sheet.html
@@ -18,11 +18,15 @@ sources:
 - **R4 — MUST** validação de fronteira tem teste com **input malformado, excessivo e do tipo errado** — não só o payload válido. Vetores com cara de ataque (aspas SQL, `<script>`, `../`, string gigante) são **obrigatórios na suíte**: é assim que se prova que o schema rejeita. [A05]
 - **R5 — MUST** feature com superfície de segurança só está **pronta** quando os testes de segurança dela estão verdes — critério de aceite, não "depois eu adiciono".
 - **R6 — NEVER** mockar o próprio controle que se quer testar (auth, RLS, validação). Mock que pula a autenticação testa o mock, não a segurança. Teste de segurança exercita o controle real.
+- **R8 — MUST** teste negativo tem **controle positivo**: antes de afirmar "B não vê", afirmar "A vê". Sem ele, o teste passa com a tabela vazia, com o usuário errado ou com o client mal configurado — passa sem testar nada.
+- **R9 — MUST** quando um teste protege um controle de segurança, **quebre o controle de propósito e veja o teste falhar** (teste de mutação) antes de confiar nele. Teste que continua verde com o controle removido não é teste. Este repositório faz isso de forma automática em `scripts/mutation-check.ts`.
 - **R7 — MUST** toda verificação — teste automatizado, checagem de deploy, validação de mudança — precisa ser capaz de **FALHAR quando o alvo está quebrado**. Validar o **artefato/estado final real** (o que foi publicado, o que o ambiente de destino efetivamente serve), nunca um proxy que existe independentemente do resultado. Verificação que passaria mesmo com o sistema quebrado é falsa confiança — pior que nenhuma, porque encerra a investigação. Teste de mesa antes de declarar "verificado": *"se isto estivesse quebrado, este check acusaria?"* — se a resposta for não, o check está errado.
 
 ## Padrões prontos
 
 ### P1 — Teste de acesso cruzado A×B (o teste anti-IDOR)
+
+<!-- ilustrativo -->
 
 ```typescript
 // Dois usuários reais autenticados; o controle (RLS/authz) roda de verdade.
@@ -30,6 +34,9 @@ test("usuário B não acessa o recurso de A", async () => {
   const created = await clientA.from("documents")
     .insert({ title: "confidencial" }).select().single();
   const id = created.data!.id;
+
+  // Controle positivo (R8): o dono enxerga. Sem isto, "B não vê" não prova nada.
+  expect((await clientA.from("documents").select().eq("id", id)).data).toHaveLength(1);
 
   // B tenta LER → RLS filtra: vazio, não erro (não vaza existência)
   const read = await clientB.from("documents").select().eq("id", id);
@@ -48,14 +55,17 @@ test("usuário B não acessa o recurso de A", async () => {
 
 ### P2 — Tabela de vetores de teste negativo (validação de fronteira, R4)
 
+<!-- ilustrativo -->
+
 ```typescript
 // Cada vetor DEVE ser rejeitado (400/422). São dados de teste da sua própria
 // suíte — não payloads operacionais contra terceiros.
 const VETORES_INVALIDOS: Array<{ nome: string; valor: unknown }> = [
-  { nome: "SQL-like em campo texto",  valor: "'; DROP TABLE users; --" },
-  { nome: "HTML/script em campo texto", valor: "<script>alert(1)</script>" },
-  { nome: "path traversal em nome de arquivo", valor: "../../etc/passwd" },
+  { nome: "SQL-like em campo que espera UUID",  valor: "'; DROP TABLE users; --" },
+  { nome: "HTML/script em campo que espera enum", valor: "<script>alert(1)</script>" },
+  { nome: "path traversal em campo que espera UUID", valor: "../../etc/passwd" },
   { nome: "string acima do limite",   valor: "x".repeat(100_000) },
+  { nome: "campo desconhecido (mass assignment)", valor: { campo: "ok", role: "admin" } },
   { nome: "tipo errado (número onde espera texto)", valor: 12345 },
   { nome: "objeto aninhado inesperado", valor: { $ne: null } },
 ];
@@ -68,9 +78,13 @@ test.each(VETORES_INVALIDOS)("rejeita input inválido: $nome", ({ valor }) => {
 
 > O ponto NÃO é "detectar SQL injection por string" (isso é blocklist, falha —
 > `input-validation.md` R5). É provar que o **schema** rejeita o que não bate
-> com o formato esperado. A defesa é a allowlist do schema; o teste confirma.
+> com o formato esperado. Num campo de **texto livre**, `'; DROP TABLE` é dado
+> válido e deve ser aceito — ali a defesa é a query parametrizada, e o teste
+> correspondente é gravar e ler o valor de volta intacto.
 
 ### P3 — Estouro de rate limit (R3)
+
+<!-- ilustrativo -->
 
 ```typescript
 test("bloqueia na chamada além do limite", async () => {
@@ -141,3 +155,5 @@ test("usuário lê seu documento", async () => { /* só o dono, nunca o A×B */ 
 - [ ] Testes de segurança verdes antes de considerar a feature pronta (R5)?
 - [ ] Nenhum mock substituindo o controle sob teste (R6)?
 - [ ] Cada verificação foi desenhada para poder falhar se o alvo estiver quebrado — valida o artefato real, não um proxy (R7)?
+- [ ] Testes negativos têm controle positivo (R8)?
+- [ ] O controle foi quebrado de propósito e o teste falhou (R9)?

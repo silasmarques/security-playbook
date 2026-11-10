@@ -1,6 +1,4 @@
-# CI do playbook: a norma verificada como código.
-# verify-docs: links relativos, frontmatter ↔ matriz OWASP, limites de tamanho.
-# check-code-blocks: todo bloco de "Padrões prontos" compila (deno check).
+# CI do playbook: a norma verificada como código — e as verificações, verificadas.
 name: ci
 on: [push, pull_request]
 
@@ -10,12 +8,22 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v2
+      # Actions fixadas por SHA de commit (dependencies-supply-chain R10)
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
         with:
           deno-version: v2.x
-      - name: Links, matriz OWASP e limites
-        run: deno run --allow-read scripts/verify-docs.ts
-      - name: Padrões prontos compilam
-        run: deno run --allow-read --allow-write --allow-run --allow-net --allow-env scripts/check-code-blocks.ts
+      - name: Documentação consistente (links, referências, matriz, contagens)
+        run: deno task docs
+      - name: Norma idêntica ao kit testado
+        run: deno task snippets
+      - name: Tipos (kit, explorador, suítes, scripts)
+        run: deno check --frozen kit/ explore/ eval/ scripts/
+      - name: Blocos ilustrativos compilam
+        run: deno task blocks
+      - name: Testes (kit, SQL em Postgres real, explorador contra a cobaia)
+        run: deno task test
+      - name: Os testes conseguem falhar (mutação)
+        run: deno task mutation

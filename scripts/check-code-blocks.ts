@@ -1,9 +1,14 @@
-// Type-check dos blocos TypeScript/TSX da seção "Padrões prontos" dos módulos:
+// Type-check dos blocos TypeScript/TSX ILUSTRATIVOS da seção "Padrões prontos":
 //   deno run --allow-read --allow-write --allow-run --allow-net --allow-env scripts/check-code-blocks.ts
 //
-// Por que só "Padrões prontos": Anti-padrões são código intencionalmente errado;
-// Regras/Checklist não têm código. O critério do design v1 ("todo padrão compila")
-// vira verificação executável aqui.
+// Alcance — o que isto prova e o que não prova:
+//   - Blocos com marcador `kit:` NÃO passam por aqui: são cópia de arquivos do
+//     kit, que têm type-check de verdade (`deno check kit/`) e testes.
+//   - Blocos `ilustrativo` são fragmentos: nomes de contexto que eles não
+//     definem viram stubs `any`. Logo, este check pega erro de SINTAXE e de uso
+//     das APIs reais importadas (zod, supabase-js, DOM) — e NÃO pega nome de
+//     helper digitado errado. É uma rede de malha larga, declarada como tal.
+//   - Anti-padrões são código intencionalmente errado: ficam de fora.
 //
 // Como: cada bloco vira um arquivo .ts/.tsx num diretório temporário. Imports
 // jsr:/npm:/conhecidos são resolvidos de verdade (zod, dompurify etc. têm os tipos
@@ -12,9 +17,9 @@
 // envolvido numa função. Escape hatch: linha `<!-- ci:no-check -->` antes do fence.
 
 const KNOWN_BARE: Record<string, string> = {
-  "zod": "npm:zod@3",
-  "dompurify": "npm:dompurify@3",
-  "jwt-decode": "npm:jwt-decode@4",
+  "zod": "npm:zod@3.25.76",
+  "dompurify": "npm:dompurify@3.4.17",
+  "jwt-decode": "npm:jwt-decode@4.0.0",
 };
 
 interface Block {
@@ -25,29 +30,36 @@ interface Block {
   code: string;
 }
 
+let kitBlocks = 0;
+
 async function collectBlocks(): Promise<Block[]> {
   const blocks: Block[] = [];
   for (const dir of ["core", "stack"]) {
     for await (const e of Deno.readDir(dir)) {
       if (!e.isFile || !e.name.endsWith(".md")) continue;
       const lines = (await Deno.readTextFile(`${dir}/${e.name}`)).split("\n");
-      let section = "", inBlock = false, lang = "", skipNext = false, skip = false;
-      let buf: string[] = [], idx = 0;
+      let section = "", inBlock = false, lang = "", skipNext = false, skip = false, fromKit = false;
+      let buf: string[] = [], idx = 0, prev = "";
       for (const line of lines) {
         const h = line.match(/^##\s+(.*)/);
-        if (h && !inBlock) section = h[1].trim();
+        if (h && !inBlock) section = h[1]!.trim();
         if (!inBlock && line.trim() === "<!-- ci:no-check -->") { skipNext = true; continue; }
         const fence = line.match(/^```(\w*)/);
-        if (fence && !inBlock) { inBlock = true; lang = fence[1]; buf = []; skip = skipNext; skipNext = false; continue; }
+        if (fence && !inBlock) {
+          inBlock = true; lang = fence[1] ?? ""; buf = []; skip = skipNext; skipNext = false;
+          fromKit = /^<!--\s*kit:/.test(prev);
+          continue;
+        }
         if (fence && inBlock) {
           inBlock = false;
-          if ((lang === "typescript" || lang === "tsx") && section === "Padrões prontos") {
+          if (fromKit) kitBlocks++;
+          else if ((lang === "typescript" || lang === "tsx") && section === "Padrões prontos") {
             blocks.push({ module: `${dir}/${e.name}`, index: ++idx, lang, skip, code: buf.join("\n") });
           }
           continue;
         }
         if (inBlock) buf.push(line);
-        if (line.trim() !== "") skipNext = false;
+        if (line.trim() !== "") { skipNext = false; prev = line.trim(); }
       }
     }
   }
@@ -67,7 +79,7 @@ function rewriteImports(code: string): { code: string; stubs: Set<string> } {
       if (spec.startsWith("jsr:") || spec.startsWith("npm:") || KNOWN_BARE[spec]) return full;
       const named = bindings.match(/\{([^}]*)\}/);
       if (named) {
-        for (const n of named[1].split(",")) {
+        for (const n of named[1]!.split(",")) {
           const name = n.split(" as ").pop()!.trim();
           if (name) stubs.add(name);
         }
@@ -159,7 +171,7 @@ for (const b of blocks) {
     for (const e of errors) {
       const missing = e.match(/Cannot find name '(\w+)'/) ??
         e.match(/shorthand property '(\w+)'/);
-      if (missing && !stubs.has(missing[1])) { stubs.add(missing[1]); progressed = true; }
+      if (missing?.[1] && !stubs.has(missing[1])) { stubs.add(missing[1]); progressed = true; }
     }
     if (!wrapped && errors.some((e) => e.includes("TS1108"))) {
       code = wrapFragment(code);
@@ -172,7 +184,7 @@ for (const b of blocks) {
   if (errors.length > 0) failures.push({ id, errors: errors.slice(0, 5) });
 }
 
-console.log(`check-code-blocks: ${checked} bloco(s) verificados, ${skipped} pulado(s) (ci:no-check).`);
+console.log(`check-code-blocks: ${checked} bloco(s) ilustrativos verificados, ${skipped} pulado(s) (ci:no-check); ${kitBlocks} bloco(s) vêm do kit (testados lá).`);
 if (failures.length) {
   console.error(`\n${failures.length} bloco(s) com erro de compilação:\n`);
   for (const f of failures) {
@@ -181,4 +193,4 @@ if (failures.length) {
   }
   Deno.exit(1);
 }
-console.log("Todos os Padrões prontos type-checkam.");
+console.log("Todos os blocos ilustrativos compilam (sintaxe e APIs reais importadas).");

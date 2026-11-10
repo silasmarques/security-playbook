@@ -1,0 +1,618 @@
+{
+  "sobre": "Gabarito do app-cobaia (lab/cobaia). NUNCA copiar este arquivo para dentro do projeto entregue a um agente em avaliação.",
+  "falhas": [
+    {
+      "id": "S01",
+      "detector": "scan",
+      "classe": "acesso",
+      "regra": "DB-POLICY-TRUE",
+      "severidade": "CRÍTICO",
+      "status": "confirmado",
+      "arquivo": "supabase/migrations/20260101000000_init.sql",
+      "linha": 62,
+      "objeto": "public.comments / policy \"comentarios escrita\"",
+      "descricao": "Policy INSERT sem condição em comments (authenticated)"
+    },
+    {
+      "id": "S02",
+      "detector": "scan",
+      "classe": "acesso",
+      "regra": "DB-RLS-OFF",
+      "severidade": "CRÍTICO",
+      "status": "confirmado",
+      "arquivo": "supabase/migrations/20260101000000_init.sql",
+      "linha": 43,
+      "objeto": "public.payments",
+      "descricao": "Tabela public.payments sem RLS"
+    },
+    {
+      "id": "S03",
+      "detector": "scan",
+      "classe": "segredos",
+      "regra": "C-SECRET-HARDCODED",
+      "severidade": "CRÍTICO",
+      "status": "suspeito",
+      "arquivo": "supabase/functions/save-settings/index.ts",
+      "linha": 4,
+      "descricao": "Segredo no código"
+    },
+    {
+      "id": "S04",
+      "detector": "scan",
+      "classe": "segredos",
+      "regra": "C-SECRET-IN-BUNDLE",
+      "severidade": "CRÍTICO",
+      "status": "suspeito",
+      "arquivo": "src/lib/supabase.ts",
+      "linha": 10,
+      "descricao": "Credencial administrativa exposta ao frontend"
+    },
+    {
+      "id": "S05",
+      "detector": "scan",
+      "classe": "segredos",
+      "regra": "CFG-GITIGNORE-ENV",
+      "severidade": "ALTO",
+      "status": "confirmado",
+      "arquivo": ".gitignore",
+      "descricao": ".env não está no .gitignore"
+    },
+    {
+      "id": "S06",
+      "detector": "scan",
+      "classe": "acesso",
+      "regra": "DB-DEFINER-SEARCH-PATH",
+      "severidade": "ALTO",
+      "status": "confirmado",
+      "arquivo": "supabase/migrations/20260201000000_functions.sql",
+      "linha": 1,
+      "objeto": "public.get_user_credits(_user_id uuid)",
+      "descricao": "SECURITY DEFINER sem search_path fixo: get_user_credits"
+    },
+    {
+      "id": "S07",
+      "detector": "scan",
+      "classe": "acesso",
+      "regra": "DB-POLICY-TRUE",
+      "severidade": "ALTO",
+      "status": "confirmado",
+      "arquivo": "supabase/migrations/20260101000000_init.sql",
+      "linha": 60,
+      "objeto": "public.comments / policy \"comentarios leitura\"",
+      "descricao": "Policy SELECT sem condição em comments (authenticated)"
+    },
+    {
+      "id": "S08",
+      "detector": "scan",
+      "classe": "acesso",
+      "regra": "DB-POLICY-USER-METADATA",
+      "severidade": "ALTO",
+      "status": "confirmado",
+      "arquivo": "supabase/migrations/20260101000000_init.sql",
+      "linha": 71,
+      "objeto": "public.team_members / policy \"admins veem times\"",
+      "descricao": "Policy decide acesso por user_metadata em team_members"
+    },
+    {
+      "id": "S09",
+      "detector": "scan",
+      "classe": "acesso",
+      "regra": "DB-VIEW-NO-INVOKER",
+      "severidade": "ALTO",
+      "status": "confirmado",
+      "arquivo": "supabase/migrations/20260201000000_functions.sql",
+      "linha": 37,
+      "objeto": "public.notes_overview",
+      "descricao": "View public.notes_overview ignora a RLS das tabelas de origem"
+    },
+    {
+      "id": "S10",
+      "detector": "scan",
+      "classe": "injecao",
+      "regra": "C-DANGEROUS-HTML",
+      "severidade": "ALTO",
+      "status": "suspeito",
+      "arquivo": "src/components/NoteView.tsx",
+      "linha": 15,
+      "descricao": "HTML dinâmico inserido no DOM fora do wrapper sanitizado"
+    },
+    {
+      "id": "S11",
+      "detector": "scan",
+      "classe": "segredos",
+      "regra": "C-ENV-FALLBACK",
+      "severidade": "ALTO",
+      "status": "suspeito",
+      "arquivo": "supabase/functions/ai-summarize/index.ts",
+      "linha": 4,
+      "descricao": "Segredo com valor padrão no código"
+    },
+    {
+      "id": "S12",
+      "detector": "scan",
+      "classe": "injecao",
+      "regra": "C-FETCH-DYNAMIC-URL",
+      "severidade": "ALTO",
+      "status": "suspeito",
+      "arquivo": "supabase/functions/fetch-preview/index.ts",
+      "linha": 16,
+      "descricao": "fetch para URL dinâmica sem validação SSRF"
+    },
+    {
+      "id": "S13",
+      "detector": "scan",
+      "classe": "acesso",
+      "regra": "C-GETSESSION-SERVER",
+      "severidade": "ALTO",
+      "status": "suspeito",
+      "arquivo": "supabase/functions/ai-summarize/index.ts",
+      "linha": 16,
+      "descricao": "Decisão de servidor baseada em getSession()"
+    },
+    {
+      "id": "S14",
+      "detector": "scan",
+      "classe": "acesso",
+      "regra": "C-IDENTITY-FROM-BODY",
+      "severidade": "ALTO",
+      "status": "suspeito",
+      "arquivo": "supabase/functions/get-document/index.ts",
+      "linha": 9,
+      "descricao": "Identidade do usuário lida do request"
+    },
+    {
+      "id": "S15",
+      "detector": "scan",
+      "classe": "acesso",
+      "regra": "C-JWT-UNVERIFIED",
+      "severidade": "ALTO",
+      "status": "suspeito",
+      "arquivo": "supabase/functions/list-notes/index.ts",
+      "linha": 12,
+      "descricao": "JWT decodificado sem verificar a assinatura"
+    },
+    {
+      "id": "S16",
+      "detector": "scan",
+      "classe": "injecao",
+      "regra": "C-OPEN-REDIRECT",
+      "severidade": "ALTO",
+      "status": "suspeito",
+      "arquivo": "src/pages/Login.tsx",
+      "linha": 19,
+      "descricao": "Redirect para destino vindo da URL"
+    },
+    {
+      "id": "S17",
+      "detector": "scan",
+      "classe": "injecao",
+      "regra": "C-REHYPE-RAW",
+      "severidade": "ALTO",
+      "status": "suspeito",
+      "arquivo": "src/components/NoteView.tsx",
+      "linha": 12,
+      "descricao": "Markdown com HTML cru habilitado"
+    },
+    {
+      "id": "S18",
+      "detector": "scan",
+      "classe": "injecao",
+      "regra": "C-SQL-CONCAT",
+      "severidade": "ALTO",
+      "status": "suspeito",
+      "arquivo": "supabase/functions/export-notes/index.ts",
+      "linha": 23,
+      "descricao": "SQL montado por interpolação de string"
+    },
+    {
+      "id": "S19",
+      "detector": "scan",
+      "classe": "injecao",
+      "regra": "C-SQL-DYNAMIC-EXEC",
+      "severidade": "ALTO",
+      "status": "suspeito",
+      "arquivo": "supabase/migrations/20260201000000_functions.sql",
+      "linha": 26,
+      "descricao": "EXECUTE com SQL concatenado dentro de função"
+    },
+    {
+      "id": "S20",
+      "detector": "scan",
+      "classe": "injecao",
+      "regra": "C-SQL-DYNAMIC-EXEC",
+      "severidade": "ALTO",
+      "status": "suspeito",
+      "arquivo": "supabase/migrations/20260201000000_functions.sql",
+      "linha": 54,
+      "descricao": "EXECUTE com SQL concatenado dentro de função"
+    },
+    {
+      "id": "S21",
+      "detector": "scan",
+      "classe": "acesso",
+      "regra": "DB-COLUMN-WRITABLE",
+      "severidade": "ALTO",
+      "status": "suspeito",
+      "arquivo": "supabase/migrations/20260101000000_init.sql",
+      "linha": 1,
+      "objeto": "public.profiles.credits",
+      "descricao": "Usuário autenticado pode escrever em profiles.credits"
+    },
+    {
+      "id": "S22",
+      "detector": "scan",
+      "classe": "acesso",
+      "regra": "DB-COLUMN-WRITABLE",
+      "severidade": "ALTO",
+      "status": "suspeito",
+      "arquivo": "supabase/migrations/20260101000000_init.sql",
+      "linha": 1,
+      "objeto": "public.profiles.role",
+      "descricao": "Usuário autenticado pode escrever em profiles.role"
+    },
+    {
+      "id": "S23",
+      "detector": "scan",
+      "classe": "acesso",
+      "regra": "DB-DEFINER-ID-PARAM",
+      "severidade": "ALTO",
+      "status": "suspeito",
+      "arquivo": "supabase/migrations/20260201000000_functions.sql",
+      "linha": 1,
+      "objeto": "public.get_user_credits(_user_id uuid)",
+      "descricao": "SECURITY DEFINER recebe a identidade por parâmetro: get_user_credits(_user_id)"
+    },
+    {
+      "id": "S24",
+      "detector": "scan",
+      "classe": "config",
+      "regra": "CFG-NO-CSP",
+      "severidade": "MÉDIO",
+      "status": "confirmado",
+      "arquivo": "vercel.json",
+      "descricao": "Host sem Content-Security-Policy"
+    },
+    {
+      "id": "S25",
+      "detector": "scan",
+      "classe": "config",
+      "regra": "CFG-NO-LOCKFILE",
+      "severidade": "MÉDIO",
+      "status": "confirmado",
+      "arquivo": "package.json",
+      "descricao": "Projeto sem lockfile"
+    },
+    {
+      "id": "S26",
+      "detector": "scan",
+      "classe": "config",
+      "regra": "CFG-WORKFLOW-PERMISSIONS",
+      "severidade": "MÉDIO",
+      "status": "confirmado",
+      "arquivo": ".github/workflows/deploy.yml",
+      "descricao": "Workflow sem `permissions` mínimas"
+    },
+    {
+      "id": "S27",
+      "detector": "scan",
+      "classe": "acesso",
+      "regra": "DB-DEFINER-ANON-EXEC",
+      "severidade": "MÉDIO",
+      "status": "confirmado",
+      "arquivo": "supabase/migrations/20260201000000_functions.sql",
+      "linha": 1,
+      "objeto": "public.get_user_credits(_user_id uuid)",
+      "descricao": "anon pode executar função que ignora RLS: get_user_credits"
+    },
+    {
+      "id": "S28",
+      "detector": "scan",
+      "classe": "acesso",
+      "regra": "DB-DEFINER-ANON-EXEC",
+      "severidade": "MÉDIO",
+      "status": "confirmado",
+      "arquivo": "supabase/migrations/20260201000000_functions.sql",
+      "linha": 46,
+      "objeto": "public.email_exists(_email text)",
+      "descricao": "anon pode executar função que ignora RLS: email_exists"
+    },
+    {
+      "id": "S29",
+      "detector": "scan",
+      "classe": "resiliencia",
+      "regra": "DB-POLICY-NO-INDEX",
+      "severidade": "MÉDIO",
+      "status": "confirmado",
+      "arquivo": "supabase/migrations/20260101000000_init.sql",
+      "linha": 32,
+      "objeto": "public.documents.owner_id",
+      "descricao": "Coluna documents.owner_id filtra policy e não tem índice"
+    },
+    {
+      "id": "S30",
+      "detector": "scan",
+      "classe": "config",
+      "regra": "C-CORS-WILDCARD",
+      "severidade": "MÉDIO",
+      "status": "suspeito",
+      "arquivo": "supabase/functions/_shared/cors.ts",
+      "linha": 2,
+      "descricao": "CORS aberto para qualquer origem"
+    },
+    {
+      "id": "S31",
+      "detector": "scan",
+      "classe": "resiliencia",
+      "regra": "C-ERROR-LEAK",
+      "severidade": "MÉDIO",
+      "status": "suspeito",
+      "arquivo": "supabase/functions/ai-summarize/index.ts",
+      "linha": 37,
+      "descricao": "Mensagem interna de erro devolvida ao cliente"
+    },
+    {
+      "id": "S32",
+      "detector": "scan",
+      "classe": "resiliencia",
+      "regra": "C-FETCH-NO-TIMEOUT",
+      "severidade": "MÉDIO",
+      "status": "suspeito",
+      "arquivo": "supabase/functions/ai-summarize/index.ts",
+      "linha": 25,
+      "descricao": "Chamada externa sem timeout"
+    },
+    {
+      "id": "S33",
+      "detector": "scan",
+      "classe": "resiliencia",
+      "regra": "C-FETCH-NO-TIMEOUT",
+      "severidade": "MÉDIO",
+      "status": "suspeito",
+      "arquivo": "supabase/functions/fetch-preview/index.ts",
+      "linha": 16,
+      "descricao": "Chamada externa sem timeout"
+    },
+    {
+      "id": "S34",
+      "detector": "scan",
+      "classe": "resiliencia",
+      "regra": "C-LIMIT-FROM-CLIENT",
+      "severidade": "MÉDIO",
+      "status": "suspeito",
+      "arquivo": "supabase/functions/list-notes/index.ts",
+      "linha": 20,
+      "descricao": "Volume da consulta controlado pelo cliente"
+    },
+    {
+      "id": "S35",
+      "detector": "scan",
+      "classe": "segredos",
+      "regra": "C-LOG-SENSITIVE",
+      "severidade": "MÉDIO",
+      "status": "suspeito",
+      "arquivo": "supabase/functions/ai-summarize/index.ts",
+      "linha": 24,
+      "descricao": "Dado sensível indo para o log"
+    },
+    {
+      "id": "S36",
+      "detector": "scan",
+      "classe": "cripto",
+      "regra": "C-MATH-RANDOM",
+      "severidade": "MÉDIO",
+      "status": "suspeito",
+      "arquivo": "supabase/functions/webhook-pagamento/index.ts",
+      "linha": 15,
+      "descricao": "Math.random() gerando valor de segurança"
+    },
+    {
+      "id": "S37",
+      "detector": "scan",
+      "classe": "segredos",
+      "regra": "C-STORAGE-SECRET",
+      "severidade": "MÉDIO",
+      "status": "suspeito",
+      "arquivo": "src/pages/Settings.tsx",
+      "linha": 8,
+      "descricao": "Segredo digitado pelo usuário guardado no navegador"
+    },
+    {
+      "id": "S38",
+      "detector": "scan",
+      "classe": "acesso",
+      "regra": "CFG-VERIFY-JWT-OFF",
+      "severidade": "MÉDIO",
+      "status": "suspeito",
+      "arquivo": "supabase/config.toml",
+      "linha": 7,
+      "descricao": "Função sem verificação de JWT: functions.webhook-pagamento"
+    },
+    {
+      "id": "S39",
+      "detector": "scan",
+      "classe": "acesso",
+      "regra": "DB-BUCKET-PUBLIC",
+      "severidade": "MÉDIO",
+      "status": "suspeito",
+      "objeto": "storage.buckets/avatars",
+      "descricao": "Bucket público: avatars"
+    },
+    {
+      "id": "S40",
+      "detector": "scan",
+      "classe": "config",
+      "regra": "CFG-ACTION-UNPINNED",
+      "severidade": "BAIXO",
+      "status": "confirmado",
+      "arquivo": ".github/workflows/deploy.yml",
+      "linha": 10,
+      "descricao": "Action referenciada por tag, não por commit"
+    },
+    {
+      "id": "S41",
+      "detector": "scan",
+      "classe": "config",
+      "regra": "CFG-TS-NOT-STRICT",
+      "severidade": "BAIXO",
+      "status": "confirmado",
+      "arquivo": "tsconfig.json",
+      "descricao": "TypeScript sem modo estrito"
+    },
+    {
+      "id": "S42",
+      "detector": "scan",
+      "classe": "acesso",
+      "regra": "DB-DEFINER-PG-TEMP",
+      "severidade": "BAIXO",
+      "status": "confirmado",
+      "objeto": "1 função(ões) SECURITY DEFINER",
+      "descricao": "SECURITY DEFINER com search_path sem pg_temp no fim"
+    },
+    {
+      "id": "S43",
+      "detector": "scan",
+      "classe": "resiliencia",
+      "regra": "DB-POLICY-NO-INITPLAN",
+      "severidade": "BAIXO",
+      "status": "confirmado",
+      "objeto": "2 policy(ies) em 2 tabela(s)",
+      "descricao": "Policies chamam auth.uid() por linha, sem (select …)"
+    },
+    {
+      "id": "S44",
+      "detector": "scan",
+      "classe": "acesso",
+      "regra": "DB-RLS-NO-POLICY",
+      "severidade": "BAIXO",
+      "status": "confirmado",
+      "arquivo": "supabase/migrations/20260101000000_init.sql",
+      "linha": 74,
+      "objeto": "public.internal_jobs",
+      "descricao": "public.internal_jobs: RLS ligada, nenhuma policy, grants a clientes ainda presentes"
+    },
+    {
+      "id": "S45",
+      "detector": "scan",
+      "classe": "resiliencia",
+      "regra": "C-EMPTY-CATCH",
+      "severidade": "BAIXO",
+      "status": "suspeito",
+      "arquivo": "supabase/functions/webhook-pagamento/index.ts",
+      "linha": 21,
+      "descricao": "catch vazio"
+    },
+    {
+      "id": "L01",
+      "detector": "agente",
+      "classe": "acesso",
+      "severidade": "CRÍTICO",
+      "arquivo": "supabase/functions/get-document/index.ts",
+      "linha": 14,
+      "descricao": "Função sem autenticação que busca documento por id com service_role e sem filtro de dono (IDOR): qualquer pessoa lê qualquer documento."
+    },
+    {
+      "id": "L02",
+      "detector": "agente",
+      "classe": "custo",
+      "severidade": "ALTO",
+      "arquivo": "supabase/functions/ai-summarize/index.ts",
+      "linha": 25,
+      "descricao": "Chamada ao modelo de IA sem rate limit nem cap de custo por usuário."
+    },
+    {
+      "id": "L03",
+      "detector": "agente",
+      "classe": "injecao",
+      "severidade": "ALTO",
+      "arquivo": "supabase/functions/ai-summarize/index.ts",
+      "linha": 22,
+      "descricao": "Conteúdo do documento concatenado cru no prompt (prompt injection), e a saída é renderizada como HTML no frontend."
+    },
+    {
+      "id": "L04",
+      "detector": "agente",
+      "classe": "segredos",
+      "severidade": "ALTO",
+      "arquivo": "supabase/functions/save-settings/index.ts",
+      "linha": 19,
+      "descricao": "Chave de IA do usuário (BYOK) gravada em texto puro e devolvida ao cliente na resposta."
+    },
+    {
+      "id": "L05",
+      "detector": "agente",
+      "classe": "acesso",
+      "severidade": "CRÍTICO",
+      "arquivo": "supabase/functions/webhook-pagamento/index.ts",
+      "linha": 6,
+      "descricao": "Webhook de pagamento sem verificação de assinatura: qualquer pessoa marca pagamento como pago e credita qualquer conta."
+    },
+    {
+      "id": "L06",
+      "detector": "agente",
+      "classe": "logica",
+      "severidade": "ALTO",
+      "arquivo": "supabase/functions/export-notes/index.ts",
+      "linha": 17,
+      "descricao": "Corrida entre checar e debitar créditos (leitura e escrita separadas): requisições simultâneas gastam o mesmo crédito várias vezes."
+    },
+    {
+      "id": "L07",
+      "detector": "agente",
+      "classe": "acesso",
+      "severidade": "MÉDIO",
+      "arquivo": "src/pages/Login.tsx",
+      "linha": 16,
+      "descricao": "Enumeração de contas: o login diferencia 'usuário não encontrado' de 'senha incorreta', apoiado numa RPC email_exists aberta a anônimos."
+    }
+  ],
+  "iscas": [
+    {
+      "onde": "public.notes",
+      "porque": "RLS + 4 policies com (select auth.uid()) + índice — correto"
+    },
+    {
+      "onde": "public.user_settings",
+      "porque": "policies de dono corretas; a falha aqui é de lógica (L04), não de RLS"
+    },
+    {
+      "onde": "public.access_log",
+      "porque": "criada sem RLS na 1ª migration e corrigida na 3ª — só o estado final importa"
+    },
+    {
+      "onde": "public.is_active()",
+      "porque": "SECURITY DEFINER com search_path vazio e EXECUTE revogado de public/anon"
+    },
+    {
+      "onde": "public.my_recent_notes",
+      "porque": "view com security_invoker = true"
+    },
+    {
+      "onde": "public.count_notes_like(text)",
+      "porque": "SQL dinâmico com format(%L) — forma segura"
+    },
+    {
+      "onde": "public.run_export(text)",
+      "porque": "EXECUTE restrito ao service_role: não é DB-DEFINER-ANON-EXEC (o SQL dinâmico dela É falha, S21)"
+    },
+    {
+      "onde": "storage.buckets/documents",
+      "porque": "bucket privado"
+    },
+    {
+      "onde": "supabase/functions/health/index.ts",
+      "porque": "fetch com timeout para constante; CORS * com exceção registrada (playbook-ignore)"
+    },
+    {
+      "onde": "src/components/SafeHtml.tsx",
+      "porque": "dangerouslySetInnerHTML dentro do wrapper sanitizado"
+    },
+    {
+      "onde": "src/lib/format.ts",
+      "porque": "Math.random() para cor — sem relação com segurança"
+    },
+    {
+      "onde": "supabase/functions/ai-summarize/index.ts:25",
+      "porque": "fetch com host fixo em constante: não é SSRF (falta de timeout é, S32)"
+    }
+  ]
+}

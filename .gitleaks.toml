@@ -1,0 +1,9 @@
+# Config do secret scan deste repositório.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Segredo FALSO, plantado de propósito na cobaia do laboratório."
+paths = [
+  '''^lab/cobaia/''',
+]

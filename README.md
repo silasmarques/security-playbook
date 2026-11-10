@@ -1,125 +1,44 @@
 # 🛡️ Security Playbook
 
-**Um norte de segurança normativo para desenvolvimento de software — feito para ser consumido por humanos e por IAs de codificação (Claude Code, Cursor, Copilot e afins).**
+**Um padrão de segurança para começar um projeto, para trazer um projeto existente ao padrão, e para procurar as falhas reais que ele tem — feito para ser usado por pessoas e por IAs de codificação (Claude Code, Cursor, Copilot e afins).**
 
-> **Missão:** transformar conhecimento de segurança em prática de desenvolver, revisar e testar software com menos risco.
-> **Princípio:** pensar como atacante, documentar como defensor, programar como engenheiro responsável.
+> **Princípio:** nada entra na norma sem um teste que falha quando o padrão está quebrado.
+> Pensar como atacante, documentar como defensor, provar como engenheiro.
 
-Serve aos dois momentos da vida de um sistema:
+São três peças que se sustentam:
 
-- **Construindo:** a IA (ou você) consulta o playbook enquanto o código nasce — e ele já nasce seguro.
-- **Mantendo:** rode o [pente fino](checklists/audit.md) num sistema que já existe e descubra, com relatório priorizado, o que está fora dos conformes.
+| | O que é | Para quê |
+|---|---|---|
+| 📖 **Norma** | [SECURITY.md](SECURITY.md) + [core/](core/) + [stack/](stack/) | Regras objetivas (MUST/NEVER), anti-padrões com o ataque explicado, checklists. Rastreável à OWASP Top 10:2025. |
+| 🧰 **Kit** | [kit/](kit/README.md) | O código que a norma manda escrever, já escrito e testado. Instala num projeto com um comando. |
+| 🔎 **Explorador** | [explore/](explore/README.md) | Varredura que aponta falhas num projeto existente, com evidência — e roteiros de caça para o que só raciocínio encontra. |
 
-Não é material de estudo nem coletânea de boas práticas genéricas: é **norma operacional**. Regras objetivas (MUST/NEVER), padrões de código prontos para copiar, anti-padrões com o ataque explicado, e checklists verificáveis — tudo rastreável à **OWASP Top 10:2025** e ao **CWE Top 25:2025**.
+**Em números:** 17 regras inegociáveis · 12 módulos [core/](core/) · 5 de [stack/](stack/) · 35 blocos de código da norma copiados do kit por script · 202 testes · 43 controles quebrados de propósito a cada push, todos detectados · cobaia com 52 falhas plantadas.
 
-**Em números:** 16 regras inegociáveis · 11 módulos [core/](core/) · 5 de [stack/](stack/) · 4 [checklists/](checklists/) · 2 [prompts/](prompts/) · 1 matriz [OWASP↔CWE](owasp-mapping.md) · [CI](.github/workflows/ci.yml) que verifica a norma · [suíte de adoção](eval/run-adoption.ts) que a mede.
-
-**Neste README:** [O que tem dentro](#-o-que-tem-dentro) · [Como usar](#-como-usar--passo-a-passo) · [Princípios de design](#-princípios-de-design) · [Manutenção e garantias](#-manutenção-e-versões) · [Playbook companheiro](#playbook-companheiro) · [Licença](#-licença)
-
----
-
-## 📦 O que tem dentro
-
-```text
-security-playbook/
-├── SECURITY.md          ← porta de entrada: 16 inegociáveis + roteamento + instruções p/ IA
-├── owasp-mapping.md     ← matriz OWASP Top 10:2025 ↔ CWE Top 25:2025 (prova de cobertura)
-├── core/                ← 11 módulos universais (auth, input, crypto, logging, testing…)
-├── stack/               ← 5 módulos concretos (Supabase / Deno / React / IA / agentes)
-├── checklists/          ← 4 roteiros (new-project, new-feature, pre-commit, audit)
-├── prompts/             ← 2 prompts prontos (revisão de diff, análise pré-implementação)
-├── scripts/             ← verificação da norma (links, matriz, compilação dos exemplos)
-├── eval/                ← suíte de adoção (mede se a IA obedece o playbook)
-└── .github/workflows/   ← CI: verify-docs + check-code-blocks + gitleaks
-```
-
-### A porta de entrada
-
-**[SECURITY.md](SECURITY.md)** — 16 regras inegociáveis + tabela de roteamento ("vou fazer X → leio Y") + instruções de como uma IA deve consultar e reportar conformidade. É o único arquivo que precisa estar sempre à mão; o resto é consultado sob demanda.
-
-### 11 módulos universais — [core/](core/)
-
-Valem para qualquer stack web:
-
-- **[authentication](core/authentication.md)** — Provar quem é o usuário, a cada request. Validação de JWT no servidor (assinatura, expiração, audiência), por que `getUser()` e não `getSession()` para decisões de segurança, revogação de sessão em eventos sensíveis, rate limit nos fluxos de credencial e mensagens de erro que não revelam quais contas existem.
-
-- **[authorization](core/authorization.md)** — O que o usuário pode fazer depois de autenticado. Deny by default, checagem em nível de objeto (anti-IDOR: "esse recurso é mesmo seu?"), helper de acesso centralizado para nenhuma função "esquecer" a checagem, e validação SSRF de URLs de saída — cobrindo bypasses por encoding de IP (decimal, hex, octal, IPv6-mapped).
-
-- **[input-validation](core/input-validation.md)** — A fronteira entre o mundo hostil e o seu código. Validação por schema (zod) de todo input externo, queries sempre parametrizadas contra injection, upload validado em 4 dimensões (extensão, content-type, tamanho, nome) e por que blocklist de "caracteres perigosos" nunca é a defesa.
-
-- **[secrets-config](core/secrets-config.md)** — Onde cada tipo de chave deve morar (frontend público × secrets do servidor × CI), o que jamais pode ir para o bundle, separação por ambiente, o que fazer quando um secret vaza, mudança de config/env como mudança de risco (build-time × runtime, verificada no ambiente real, falha o build se faltar), security headers de referência e CORS por allowlist.
-
-- **[crypto-data-protection](core/crypto-data-protection.md)** — Criptografia sem inventar moda. AES-256-GCM com IV único para dado que precisa voltar, hash para senha (nunca o contrário), CSPRNG para tokens, comparação timing-safe para HMAC/assinaturas e payloads assinados com expiração anti-replay.
-
-- **[dependencies-supply-chain](core/dependencies-supply-chain.md)** — Defesa contra o ataque que chega via `npm install`. Lockfile + audit no CI, as 5 perguntas antes de adicionar qualquer pacote, typosquatting e slopsquatting (pacotes que IAs alucinam), SRI para CDN e permissões mínimas no pipeline.
-
-- **[api-security](core/api-security.md)** — O esqueleto de um endpoint seguro. A ordem canônica do handler (CORS → método → auth → acesso → rate limit → validação), rate limiting por usuário com cap de custo nas operações caras, paginação com teto do servidor e erros padronizados com requestId.
-
-- **[frontend-security](core/frontend-security.md)** — O que fazer quando seu código roda na máquina do atacante. XSS bloqueado por um único wrapper sanitizado (DOMPurify) em todo o projeto, URLs dinâmicas sem `javascript:`, CSP + frame-ancestors, e por que esconder botão é UX, não segurança.
-
-- **[error-handling-resilience](core/error-handling-resilience.md)** — Como o sistema se comporta quando algo dá errado. Fail closed (erro na checagem de segurança = negar), nada de stack trace para o cliente, timeout em toda chamada externa, retry só com backoff e idempotência, e nenhum catch silencioso.
-
-- **[logging-monitoring](core/logging-monitoring.md)** — Saber que o ataque aconteceu. Quais eventos de segurança logar e com qual estrutura, o que jamais pode ir para log (tokens, PII, chaves), anti log-injection, trilha de auditoria persistente e o alerta mínimo viável.
-
-- **[security-testing](core/security-testing.md)** — Provar que os controles negam o acesso indevido, não só que o caminho feliz funciona. Teste negativo para todo controle, teste de acesso cruzado A×B (anti-IDOR), estouro de rate limit, vetores de input inválido na própria suíte, critérios de aceite em BDD defensivo (Gherkin) e o princípio de que toda verificação precisa poder falhar — validar o artefato real, não um proxy. Pensar como atacante, verificado como teste.
-
-### 5 módulos de stack — [stack/](stack/)
-
-Aplicação concreta em TypeScript/React/Supabase/Deno (princípios transferíveis para stacks equivalentes):
-
-- **[supabase-rls](stack/supabase-rls.md)** — A fronteira de dados quando a chave publicável (`sb_publishable_…`; anon key no modelo legado) é pública por design. RLS em toda tabela com policy por operação (incluindo o `WITH CHECK` que quase todo mundo esquece no UPDATE), `(select auth.uid())` para o cache de initPlan, índice nas colunas de policy, Storage com pasta por usuário, os perigos do `service_role`/secret key e do `SECURITY DEFINER`, e o teste de isolamento usuário A × usuário B.
-
-- **[edge-functions-deno](stack/edge-functions-deno.md)** — Cada função é um endpoint público na internet. Template completo de função segura com o prólogo na ordem certa, helpers compartilhados em `_shared/` como única implementação, CORS por allowlist via env, webhooks verificados com HMAC timing-safe e secrets sem fallback.
-
-- **[react-typescript](stack/react-typescript.md)** — TypeScript estrito como ferramenta de segurança. `unknown` + schema nas fronteiras em vez de `as`, env do Vite validada no boot, guard de rota único, redirect pós-login com allowlist (anti open redirect) e onde chaves digitadas pelo usuário não podem parar.
-
-- **[ai-llm-security](stack/ai-llm-security.md)** ★ — O módulo diferencial. Prompt injection tratada com defesa em camadas (delimitação do conteúdo externo + instrução defensiva + score de risco no RAG + validação de output), chaves BYOK cifradas e write-only, rate limit e cap de custo antes de toda chamada de modelo, e tool-use com confirmação humana para ações destrutivas.
-
-- **[agentic-security](stack/agentic-security.md)** ★ — O outro lado da moeda: segurança de quem **usa** agentes de codificação (Claude Code, Cursor) e MCP servers. Prompt injection via conteúdo do repositório, tool poisoning, a tríade letal (dados privados + conteúdo não confiável + canal de exfiltração), permissões mínimas no harness e review de diff de agente como código de terceiro.
-
-★ Segurança de IA/LLM e de agentes tratada como cidadã de primeira classe — os módulos mais difíceis de encontrar prontos em outros guias.
-
-### 4 checklists — [checklists/](checklists/)
-
-| Checklist | Quando usar |
-|---|---|
-| [new-project](checklists/new-project.md) | Criando um projeto — segurança do dia 1 |
-| [new-feature](checklists/new-feature.md) | Antes de codar uma feature — mini threat model em 5 perguntas |
-| [pre-commit](checklists/pre-commit.md) | Antes de todo commit |
-| [audit](checklists/audit.md) | Pente fino em sistema que já existe |
-
-### 2 prompts prontos — [prompts/](prompts/)
-
-Para colar numa sessão de IA já configurada com o playbook:
-
-| Prompt | Quando usar |
-|---|---|
-| [pre-implementation](prompts/pre-implementation.md) | Antes de codar — riscos, critérios de aceite, BDD defensivo e cuidados por camada |
-| [security-review](prompts/security-review.md) | Revisar um diff/PR/código — relatório completo por achado (Risco → Correção → Teste → BDD) |
-
-### A prova de cobertura
-
-**[owasp-mapping.md](owasp-mapping.md)** — matriz que mapeia cada categoria da OWASP Top 10:2025 aos módulos e regras que a cobrem, com rastreio às fraquezas do CWE Top 25:2025. Nada do Top 10 fica descoberto.
-
-Cada módulo segue o mesmo formato: **Regras → Padrões prontos → Anti-padrões → Checklist**. Os padrões de código foram extraídos e generalizados de **sistemas reais em produção, auditados**.
+**Neste README:** [Os três usos](#-os-três-usos) · [O que é universal](#-o-que-é-universal-e-o-que-depende-da-stack) · [O que é garantido](#-o-que-é-garantido--e-como) · [Limites](#-limites--o-que-isto-não-é) · [Estrutura](#-estrutura) · [Manutenção](#-manutenção) · [Licença](#-licença)
 
 ---
 
-## 🚀 Como usar — passo a passo
+## 🚀 Os três usos
 
-### Setup com IA de codificação (5 minutos)
-
-**Passo 1 — Clone o playbook** em um caminho fixo da sua máquina:
+Pré-requisito único: [Deno](https://deno.com) 2.x e um clone deste repositório.
 
 ```bash
 git clone https://github.com/silasmarques/security-playbook.git
 ```
 
-**Passo 2 — Cole este bloco no arquivo de regras da sua IA**, ajustando o caminho do clone:
+### 1. Começar um projeto no padrão
 
-- Claude Code → `~/.claude/CLAUDE.md` (global) ou `CLAUDE.md` do projeto
-- Cursor → `.cursorrules`
-- Copilot → `.github/copilot-instructions.md`
+```bash
+# a partir do clone do playbook
+deno run --allow-read --allow-write kit/install.ts ../meu-projeto --sql
+```
+
+Isso entrega, testados: validação SSRF, CORS por allowlist, respostas com security headers, boundary de erro, criptografia com rotação de chave, logger com redação, validação de upload, e — na stack Supabase — tabela de perfil com privilégio por coluna, rate limit, auditoria append-only e o template de função com o prólogo completo. Depois, siga [checklists/new-project.md](checklists/new-project.md).
+
+### 2. Fazer a IA seguir o padrão enquanto o código nasce
+
+Cole este bloco no arquivo de regras da sua IA (Claude Code: `CLAUDE.md` · Cursor: `.cursorrules` · Copilot: `.github/copilot-instructions.md`), ajustando o caminho:
 
 ```markdown
 ## Security Playbook (obrigatório)
@@ -139,61 +58,132 @@ playbook e código existente → sinalizar, não resolver silenciosamente.
 a consulta é integral: SECURITY.md + módulos relevantes + checklist aplicável.
 ```
 
-**Passo 3 — Teste a adoção.** Numa sessão nova, peça *sem mencionar segurança*:
-
-```text
-Crie um endpoint de upload de documentos.
-```
-
-A IA deve consultar o roteamento, aplicar os módulos e reportar algo como *"api-security R1/R2 ok: prólogo completo + rate limit; input-validation P3: upload validado nas 4 dimensões"*. Se não consultou, confira o caminho do Passo 2.
-
-**Passo 4 — Use no dia a dia.** Exemplos de pedidos e o que esperar:
-
 | Você diz | A IA faz |
 |---|---|
-| "Cria a tabela de comentários" | Migration com RLS + 4 policies + índice ([supabase-rls](stack/supabase-rls.md) P1) |
-| "Adiciona busca por URL externa" | Validação SSRF + timeout + redirect revalidado ([authorization](core/authorization.md) P2) |
-| "Integra com a API do Gemini" | Rate limit + cap de custo ANTES da chamada ([ai-llm-security](stack/ai-llm-security.md)) |
-| "Consulta o playbook e revisa esse diff" | Relatório completo por achado ([prompts/security-review.md](prompts/security-review.md)) + checklist [pre-commit](checklists/pre-commit.md) |
-| "Analisa essa feature antes de eu codar" | Threat model + critérios de aceite + BDD ([prompts/pre-implementation.md](prompts/pre-implementation.md)) |
+| "Cria a tabela de comentários" | Migration com RLS, policies por operação e índice ([supabase-rls](stack/supabase-rls.md) P1) |
+| "Adiciona busca por URL externa" | `safeFetch`: validação SSRF, timeout, redirect revalidado ([authorization](core/authorization.md) P2) |
+| "Integra com a API do Gemini" | Rate limit e cap de custo ANTES da chamada ([ai-llm-security](stack/ai-llm-security.md)) |
+| "Analisa essa feature antes de eu codar" | Modelo de ameaças + critérios de aceite ([prompts/pre-implementation.md](prompts/pre-implementation.md)) |
+| "Consulta o playbook e revisa esse diff" | Relatório por achado, cada um **confirmado** ou **suspeito** ([prompts/security-review.md](prompts/security-review.md)) |
 
-### Pente fino em sistema existente
+### 3. Explorar um projeto que já existe
 
-Para auditar um sistema que já está no ar, use o roteiro completo de **[checklists/audit.md](checklists/audit.md)** — inventário → varredura módulo a módulo → cobertura OWASP → relatório priorizado por severidade. Lá tem um **prompt pronto** para colar na sua IA e iniciar a auditoria.
+```bash
+deno task explore ../meu-projeto --md relatorio.md
+```
 
-### Sem IA (uso humano)
+Em segundos: tabelas sem RLS, policies abertas, funções privilegiadas expostas, colunas de poder que o usuário consegue escrever, segredos no código, configuração frouxa — cada achado com onde, evidência, por que importa e como corrigir. O relatório começa dizendo **o que foi analisado e o que não foi**. Não altera o projeto, não lê `.env`, não envia nada para fora.
 
-1. **Projeto novo?** Siga [new-project.md](checklists/new-project.md) na ordem.
-2. **Vai codar uma feature?** Responda as 5 perguntas de [new-feature.md](checklists/new-feature.md) (~10 min) e abra os módulos que o roteamento do [SECURITY.md](SECURITY.md) indicar.
-3. **Vai commitar?** Passe o diff por [pre-commit.md](checklists/pre-commit.md).
-4. **Dúvida pontual?** A tabela de roteamento do [SECURITY.md](SECURITY.md) diz qual módulo abrir.
+Para as falhas que nenhuma regra descreve (IDOR dentro de uma função, IA sem limite, corrida de créditos), o roteiro completo está em [checklists/audit.md](checklists/audit.md), com um prompt pronto. O resultado fica registrado no projeto, em `SECURITY-STATUS.md` ([modelo](templates/SECURITY-STATUS.md)).
 
-### Playbook companheiro
-
-Segurança é metade da qualidade. A outra — **testar o que importa sem inflar a suíte** — vive no [testing-playbook](https://github.com/silasmarques/testing-playbook): decisão de teste por risco, camadas pela Testing Trophy, e playbooks de API/contrato/E2E/performance. Ele referencia este aqui para tudo que é segurança de teste (RLS, prompt injection, abuso). Para cobertura completa, adote os dois — clonados lado a lado.
+**Sem IA:** os checklists ([new-project](checklists/new-project.md), [new-feature](checklists/new-feature.md), [pre-commit](checklists/pre-commit.md), [audit](checklists/audit.md)) e a tabela de roteamento do [SECURITY.md](SECURITY.md) funcionam do mesmo jeito para uma pessoa.
 
 ---
 
-## 🧭 Princípios de design
+## 🧭 O que é universal e o que depende da stack
 
-1. **Organizado por domínio, não por taxonomia** — os módulos seguem como se pensa ao codar ("estou mexendo em auth"), com a OWASP como camada de rastreabilidade.
-2. **Índice enxuto + módulos sob demanda** — o `SECURITY.md` cabe no contexto de qualquer sessão de IA; os módulos só entram quando a tarefa pede.
-3. **Todo padrão é copiável** — código real TS/SQL/Deno com os trade-offs comentados no lugar.
-4. **Anti-padrões com o ataque junto** — cada "nunca faça" mostra o que o atacante ganharia.
-5. **Norma nascida de produção** — as regras mais enfáticas vêm de lacunas encontradas em auditorias reais.
+Segurança vale para todo projeto; **prova** depende do que o projeto usa. O playbook separa as duas coisas de propósito:
 
-## 🔧 Manutenção e versões
+| Camada | Vale para | Conteúdo |
+|---|---|---|
+| **Núcleo universal** | qualquer sistema | [SECURITY.md](SECURITY.md), os 12 módulos de [core/](core/) — inclusive [desenho seguro](core/secure-design.md) (fronteiras de confiança, classificação de dados, modelo de ameaças, incidente) —, checklists, [roteiros de caça](explore/hunts/acesso-cruzado.md) e o [protocolo de evidência](explore/PROTOCOLO.md) |
+| **Kit web** | qualquer runtime JS/TS (Deno, Node, Bun, Workers, navegador) | [kit/web/](kit/web/) — só APIs padrão da web, sem dependência |
+| **Varredura de código e config** | qualquer projeto JS/TS | [explore/code-checks.ts](explore/code-checks.ts) |
+| **Adaptador Supabase/Postgres** | projetos nessa stack | [stack/](stack/), [kit/supabase/](kit/supabase/), [explore/supabase/](explore/supabase/) — RLS e funções testadas num Postgres real; achados lidos do catálogo do banco |
 
-- Cada módulo tem `last-review` e `sources` no frontmatter — afirmações não triviais citam fonte oficial (OWASP, docs Supabase/Deno/React).
-- **Cadência de revisão:** módulos `stack/` a cada trimestre (plataformas mudam rápido — a Supabase trocou o modelo de API keys em ~1 ano); `core/` ao menos 1×/ano e a cada nova edição OWASP/CWE.
-- **A norma é verificada como código:** todo push roda [o CI](.github/workflows/ci.yml) — links íntegros, matriz OWASP consistente com o frontmatter, limites de tamanho e **compilação de todos os Padrões prontos** (`deno check` com os tipos reais de zod/supabase/dompurify). Padrão que não compila não entra na norma. O repo também roda o próprio secret scan do [P4](core/secrets-config.md).
-- **A adoção é medida, não presumida:** [eval/run-adoption.ts](eval/run-adoption.ts) roda o "Passo 3 — Teste a adoção" de verdade — cenários headless (`claude -p`) num projeto-cobaia com o gatilho instalado, pedindo features *sem mencionar segurança*, e nota por rubrica determinística (RLS saiu? upload validado nas 4 dimensões? SSRF bloqueado? e o controle negativo: função inocente ganhou cerimônia indevida?). Manual por design — custa tokens e é não-determinística: `deno run -A eval/run-adoption.ts [--model sonnet] [--scenario S1]`. Rode ao mudar o SECURITY.md/roteamento ou ao trocar de modelo.
-- Este é um playbook **opinativo e curado**: contribuições externas não são aceitas para preservar a integridade das normas. Encontrou um erro? Abra uma issue.
-- Quando sair nova edição da OWASP Top 10, tags e matriz são atualizadas.
+Num projeto de outra stack, o núcleo se aplica inteiro; o que falta é a prova automática de banco, e o relatório do explorador **diz isso** em vez de fingir cobertura. Um adaptador novo entra sem mexer no núcleo ([como](explore/README.md#acrescentar-um-adaptador)).
+
+---
+
+## ✅ O que é garantido — e como
+
+Cada linha é verificada a cada push, pelo comando indicado. `deno task ci` roda tudo.
+
+| Garantia | Como é provada |
+|---|---|
+| O código mostrado na norma é o código testado | Os blocos de "Padrões prontos" são copiados do kit por script; o CI falha se divergirem (`deno task snippets`). Bloco que não vem do kit está marcado `ilustrativo`. |
+| Os padrões funcionam | 202 testes. O SQL (RLS, privilégios, funções) roda contra um **Postgres real**; o validador SSRF tem um caso por forma de IP. |
+| Os testes conseguem falhar | `deno task mutation` remove 43 controles, um por vez — a checagem de metadata do SSRF, o `REVOKE` da função, a policy de dono — e exige que a suíte perceba cada um. |
+| O kit instalado funciona | Um teste instala o kit num projeto vazio, compila o template e passa o explorador nele: zero achados. |
+| O explorador não regride | Contra a [cobaia](lab/README.md): acha as 45 falhas de padrão plantadas e não acusa nenhuma das 12 iscas. |
+| A documentação é consistente | Links, referências cruzadas (`módulo Rn`), matriz OWASP ↔ tags, contagens anunciadas e cadência de revisão (`deno task docs`). |
+| O repositório segue a própria norma | Lockfile, actions fixadas por SHA, permissões mínimas no CI, secret scan com histórico completo. |
+
+---
+
+## ⚠️ Limites — o que isto NÃO é
+
+- **Não substitui pentest nem scanner comercial.** É um recorte estreito e fundo, com as bordas declaradas. Para sistema que guarda dinheiro ou dado sensível de terceiros, contrate um teste de invasão.
+- **Não garante que um projeto está seguro.** Reduz risco e encontra muita coisa. "Zero achados" significa "nada do que foi procurado, no que foi analisado" — e o relatório lista os dois.
+- **A prova de banco é sobre as migrations, com um dublê da Supabase.** O que foi feito direto no painel não aparece. Em dois projetos reais usados para calibrar o explorador, 14% e 38% das migrations não aplicaram no banco de análise; nesses casos o resultado sai marcado como parcial.
+- **A varredura de código é por padrão de texto.** Erra para os dois lados; por isso quase tudo sai como *suspeito*, para triagem.
+- **Falhas de lógica dependem de quem caça.** Os roteiros orientam; o resultado varia com a IA (ou a pessoa) que os executa.
+- **As suítes com IA não rodam no CI** — custam tokens e variam a cada execução: [eval/run-adoption.ts](eval/run-adoption.ts) (a IA aplica o playbook sem ser lembrada?) e [eval/run-audit.ts](eval/run-audit.ts) (a IA acha as falhas da cobaia?). A pontuação delas é determinística e testada; os números de uma execução valem para aquele modelo, naquele dia. Ambas foram reescritas na v2 e **ainda não têm resultado publicado**.
+- **Adaptador pronto: só Supabase/Postgres.** Mobile, outras linguagens e outros bancos têm a norma e os roteiros, não a prova automática.
+- **O módulo de desenho seguro não é aconselhamento jurídico** (LGPD e afins).
+
+---
+
+## 📦 Estrutura
+
+```text
+security-playbook/
+├── SECURITY.md        ← porta de entrada: 17 inegociáveis + roteamento + instruções p/ IA
+├── core/              ← 12 módulos universais
+├── stack/             ← 5 módulos de stack (Supabase, Deno, React/TS, IA, agentes)
+├── kit/
+│   ├── web/           ← helpers universais (SSRF, CORS, cripto, log, upload…)
+│   ├── supabase/      ← SQL, guardas e template de função
+│   ├── tests/         ← os testes de tudo acima
+│   └── install.ts     ← instala o kit num projeto
+├── explore/
+│   ├── cli.ts         ← deno task explore <projeto>
+│   ├── code-checks.ts ← núcleo universal: código e configuração
+│   ├── supabase/      ← adaptador: banco via catálogo + bancada de prova
+│   ├── PROTOCOLO.md   ← o que conta como evidência
+│   └── hunts/         ← 5 roteiros de caça
+├── lab/               ← cobaia vulnerável de propósito + gabarito
+├── eval/              ← suítes com IA (adoção e auditoria) — fora do CI
+├── checklists/        ← new-project · new-feature · pre-commit · audit
+├── prompts/           ← análise pré-implementação · revisão de diff
+├── templates/         ← SECURITY-STATUS.md (registro por projeto)
+├── scripts/           ← verify-docs · sync-snippets · check-code-blocks · mutation-check
+└── owasp-mapping.md   ← matriz OWASP Top 10:2025 ↔ CWE Top 25:2025
+```
+
+### Os módulos
+
+**[core/](core/) — valem para qualquer stack:**
+[authentication](core/authentication.md) · [authorization](core/authorization.md) (inclui SSRF e multi-tenant) · [api-security](core/api-security.md) · [input-validation](core/input-validation.md) · [secrets-config](core/secrets-config.md) · [crypto-data-protection](core/crypto-data-protection.md) · [dependencies-supply-chain](core/dependencies-supply-chain.md) · [frontend-security](core/frontend-security.md) · [error-handling-resilience](core/error-handling-resilience.md) · [logging-monitoring](core/logging-monitoring.md) · [security-testing](core/security-testing.md) · [secure-design](core/secure-design.md)
+
+**[stack/](stack/) — a forma concreta numa stack:**
+[supabase-rls](stack/supabase-rls.md) · [edge-functions-deno](stack/edge-functions-deno.md) · [react-typescript](stack/react-typescript.md) · [ai-llm-security](stack/ai-llm-security.md) · [agentic-security](stack/agentic-security.md)
+
+Todo módulo segue o mesmo formato: **Regras → Padrões prontos → Anti-padrões → Checklist**.
+
+---
+
+## 🔧 Manutenção
+
+```bash
+deno task ci         # tudo o que o CI roda
+deno task test       # só os testes
+deno task docs       # consistência da documentação
+deno task snippets   # norma idêntica ao kit?   (snippets:write reescreve)
+deno task mutation   # os testes conseguem falhar?
+```
+
+- **Mudou um padrão?** Edite o arquivo do kit e o teste dele; `deno task snippets:write` atualiza a norma. Nunca edite o bloco direto no markdown — o CI desfaz.
+- **Regra nova no explorador?** Primeiro plante a falha na cobaia e registre no gabarito ([lab/README.md](lab/README.md)).
+- **Garantia nova?** Acrescente a mutação correspondente em [scripts/mutation-check.ts](scripts/mutation-check.ts).
+- **Cadência de revisão:** módulos de `stack/` a cada trimestre, `core/` ao menos uma vez por ano e a cada nova edição OWASP/CWE. Um workflow semanal falha quando um módulo passa do prazo.
+- **Afirmação sobre plataforma externa** (limites, nomes de chave, comportamento de API) cita a fonte e a data em que foi conferida — e envelhece. Reconfira antes de depender dela.
+- Histórico de versões: [CHANGELOG.md](CHANGELOG.md). Playbook companheiro, para estratégia de testes: [testing-playbook](https://github.com/silasmarques/testing-playbook).
+- Este é um playbook **opinativo e curado**: contribuições diretas não são aceitas. Encontrou um erro? Abra uma issue.
 
 ## 📄 Licença
 
-[CC BY-ND 4.0](LICENSE.md) — use e compartilhe com atribuição; não redistribua versões modificadas. **Exceção:** os trechos de código dos módulos são MIT — copie e adapte livremente nos seus projetos. Detalhes em [LICENSE.md](LICENSE.md).
+[CC BY-ND 4.0](LICENSE.md) para a norma (texto, estrutura, regras). **Todo o código** — `kit/`, `explore/`, `scripts/`, `eval/` e os blocos de código dos módulos — é MIT: copie e adapte livremente. Detalhes em [LICENSE.md](LICENSE.md).
 
 ---
 
